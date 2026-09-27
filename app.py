@@ -1372,10 +1372,11 @@ with tab3:
                 extracted_result = None
                 error_msg = ""
                 try:
-                    stego_test = LSBSteganography(seed=seed_val, nsym=20, auto_detect_nsym=True)
-                    extracted_raw = stego_test.extract(jpeg_arr)
-                    decrypted_res = st.session_state.elgamal.decrypt_bytes(extracted_raw, st.session_state.private_key)
-                    extracted_result = decrypted_res.decode('utf-8')
+                    with st.spinner(f"🧪 Menguji ekstraksi dari JPEG quality {quality}..."):
+                        stego_test = LSBSteganography(seed=seed_val, nsym=20, auto_detect_nsym=True)
+                        extracted_raw = stego_test.extract(jpeg_arr)
+                        decrypted_res = st.session_state.elgamal.decrypt_bytes(extracted_raw, st.session_state.private_key)
+                        extracted_result = decrypted_res.decode('utf-8')
                 except reedsolo.ReedSolomonError as e:
                     extraction_failed = True
                     error_msg = f"Reed-Solomon ECC mendeteksi korupsi data melebihi batas koreksi galat ({str(e)})"
