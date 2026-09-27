@@ -918,9 +918,9 @@ with tab1:
                         seed_val = int(stego_key) if stego_key.isdigit() else int(hashlib.sha256(stego_key.encode()).hexdigest(), 16) % (2**31 - 1)
                         stego = LSBSteganography(seed=seed_val, nsym=20)
                         stego_array = stego.embed(cover_array, encrypted_message)
-                    
-                    # 4. Calculate PSNR
-                    psnr = stego.calculate_psnr(cover_array, stego_array)
+                
+                # 4. Calculate PSNR
+                psnr = stego.calculate_psnr(cover_array, stego_array)
                     
                     # 5. Display Stego Image
                     stego_image = Image.fromarray(stego_array)
