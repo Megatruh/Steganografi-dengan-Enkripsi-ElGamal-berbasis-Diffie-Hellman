@@ -3,11 +3,13 @@ import numpy as np
 from PIL import Image
 import io
 import matplotlib.pyplot as plt
+import hashlib
 
 from elgamal import ElGamalDH
 from steganography import LSBSteganography
 from analysis import (plot_histogram_comparison, plot_histogram_difference, 
                       calculate_statistical_metrics, close_figure)
+import reedsolo
 
 # Page configuration
 st.set_page_config(
@@ -49,9 +51,10 @@ st.markdown('<h1 class="main-header">🔐 Steganografi dengan Enkripsi ElGamal b
 st.markdown("""
 Aplikasi ini melakukan steganografi pada gambar dengan alur kerja:
 1. Pesan dienkripsi menggunakan algoritma ElGamal berbasis Diffie-Hellman
-2. Pesan terenkripsi disembunyikan menggunakan metode LSB yang diacak dengan PRNG
-3. Analisis perbandingan histogram cover dan stego
-4. Steganalisis visual dengan menampilkan bidang LSB (enhanced LSB)
+2. Pesan terenkripsi dilindungi dengan Reed-Solomon Error Correction Code (ECC)
+3. Pesan terenkripsi disembunyikan menggunakan metode LSB yang diacak dengan PRNG
+4. Analisis perbandingan histogram cover dan stego
+5. Steganalisis visual dengan menampilkan bidang LSB (enhanced LSB)
 """)
 
 # Cache ElGamal instance to avoid regenerating safe prime on each rerun
@@ -109,7 +112,7 @@ with tab1:
         
         col1, col2 = st.columns(2)
         with col1:
-            st.image(cover_image, caption="Cover Image", use_container_width=True)
+            st.image(cover_image, caption="Cover Image", width='stretch')
         
         with col2:
             # Calculate capacity
@@ -153,7 +156,7 @@ with tab1:
                     
                     col1, col2 = st.columns(2)
                     with col1:
-                        st.image(stego_image, caption="Stego Image", use_container_width=True)
+                        st.image(stego_image, caption="Stego Image", width='stretch')
                     
                     with col2:
                         # Download button
@@ -203,7 +206,13 @@ with tab2:
         elif stego_array.shape[2] == 4:
             stego_array = stego_array[:, :, :3]
         
-        st.image(stego_image, caption="Stego Image", use_container_width=True)
+        st.image(stego_image, caption="Stego Image", width='stretch')
+        
+        # Calculate and display SHA-256 hash for integrity verification
+        stego_file.seek(0)
+        file_hash = hashlib.sha256(stego_file.read()).hexdigest()
+        st.info(f"🔒 SHA-256 Hash: {file_hash}")
+        st.caption("Gunakan hash ini untuk verifikasi integritas file stego")
     
     # Input stego key
     extract_stego_key = st.text_input("Input Stego Key", value="12345", key='extract_key', help="Gunakan stego key yang sama saat enkripsi")
@@ -212,7 +221,8 @@ with tab2:
     if st.button("🔓 Dekrip", type="primary"):
         if stego_file:
             try:
-                # Extract using LSB with PRNG
+                # Extract using LSB with PRNG and Reed-Solomon error correction
+                # auto_detect_nsym=True (default) enables backward compatibility with old stego images
                 stego = LSBSteganography(seed=int(extract_stego_key))
                 encrypted_message = stego.extract(stego_array)
                 
@@ -231,6 +241,11 @@ with tab2:
                 
                 st.success("✓ Dekripsi berhasil!")
                 
+            except reedsolo.ReedSolomonError as e:
+                # Specific error handling for Reed-Solomon decoding failure
+                st.error("✗ Reed-Solomon Error Correction Gagal")
+                st.error(f"Detail: {str(e)}")
+                st.warning("💡 Solusi: Gambar stego mungkin telah berubah (ter-kompresi ulang/ter-resize/ter-edit) saat transfer, meskipun formatnya tetap PNG. Coba gunakan file asli atau verifikasi hash file.")
             except Exception as e:
                 st.error(f"✗ Error: {str(e)}")
                 st.error("Pastikan stego key benar dan gambar mengandung pesan terenkripsi!")
@@ -249,9 +264,9 @@ with tab3:
         
         col1, col2 = st.columns(2)
         with col1:
-            st.image(Image.fromarray(cover_array), caption="Cover Image", use_container_width=True)
+            st.image(Image.fromarray(cover_array), caption="Cover Image", width='stretch')
         with col2:
-            st.image(Image.fromarray(stego_array), caption="Stego Image", use_container_width=True)
+            st.image(Image.fromarray(stego_array), caption="Stego Image", width='stretch')
         
         # Show histogram comparison
         st.subheader("Perbandingan Histogram")
@@ -285,7 +300,7 @@ with tab3:
         stego = LSBSteganography()
         lsb_plane = stego.get_lsb_plane(stego_array)
         lsb_image = Image.fromarray(lsb_plane)
-        st.image(lsb_image, caption="Enhanced LSB Plane", use_container_width=True)
+        st.image(lsb_image, caption="Enhanced LSB Plane", width='stretch')
         
     else:
         st.info("ℹ️ Silakan lakukan enkripsi terlebih dahulu untuk melihat analisis.")

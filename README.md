@@ -9,23 +9,29 @@ Aplikasi web berbasis Streamlit untuk melakukan steganografi pada gambar dengan 
    - Berbasis Diffie-Hellman untuk pertukaran kunci
    - Generate key pair (private dan public key) secara otomatis
 
-2. **Steganografi LSB dengan PRNG**
+2. **Reed-Solomon Error Correction Code (ECC)**
+   - Menambahkan parity bytes untuk koreksi error burst
+   - Meningkatkan ketahanan terhadap kompresi lossy (JPEG)
+   - Dapat memperbaiki error yang disebabkan oleh konversi PNG ke JPEG
+
+3. **Steganografi LSB dengan PRNG**
    - Menyembunyikan pesan terenkripsi menggunakan metode LSB (Least Significant Bit)
    - Posisi bit diacak menggunakan PRNG (Pseudo-Random Number Generator)
    - Seed untuk PRNG diinput melalui stego key
 
-3. **Analisis Histogram**
+4. **Analisis Histogram**
    - Perbandingan histogram antara cover image dan stego image
    - Visualisasi perbedaan histogram
    - Metrik statistik (MSE, PSNR, MAE, Correlation)
 
-4. **Steganalisis Visual**
+5. **Steganalisis Visual**
    - Menampilkan bidang LSB (enhanced LSB)
    - Analisis visual untuk mendeteksi keberadaan pesan tersembunyi
 
 ## Instalasi
 
 1. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -83,6 +89,7 @@ Aplikasi akan berjalan di `http://localhost:8501`
 - **Pillow**: Image processing
 - **NumPy**: Numerical computing
 - **Matplotlib**: Plotting dan visualisasi
+- **Reed-Solo**: Reed-Solomon error correction code untuk ketahanan terhadap kompresi lossy
 
 ## Catatan Keamanan
 

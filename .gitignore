@@ -44,3 +44,6 @@ Thumbs.db
 # *.jpg
 # *.jpeg
 # *.bmp
+
+# Documentation
+SRS.md
