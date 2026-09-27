@@ -17,6 +17,7 @@ from analysis import (
     calculate_histogram,
     close_figure,
 )
+import reedsolo
 
 
 # ============================================================
@@ -815,6 +816,13 @@ st.markdown(
         margin: 1.1rem 0;
     }
 
+    .stat-cards-row-5 {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.75rem;
+        margin: 1.1rem 0;
+    }
+
     .stat-card-box {
         background: var(--surface);
         border: 1px solid var(--border);
@@ -1131,7 +1139,7 @@ st.markdown(
         .topbar-right {
             display: none;
         }
-        .meta-grid-4, .stat-cards-row {
+        .meta-grid-4, .stat-cards-row, .stat-cards-row-5 {
             grid-template-columns: repeat(2, 1fr);
         }
     }
@@ -1324,7 +1332,7 @@ if st.session_state.active_nav == "Hide Message":
                     </span>
                 </div>
 
-                <div class="stat-cards-row">
+                <div class="stat-cards-row-5">
                     <div class="stat-card-box">
                         <div class="stat-card-title">PSNR Evaluation</div>
                         <div class="stat-card-val">{data['psnr']:.2f} <span style="font-size:0.85rem; font-weight:500; color:var(--muted);">dB</span></div>
@@ -1344,6 +1352,11 @@ if st.session_state.active_nav == "Hide Message":
                         <div class="stat-card-title">Capacity Allocation</div>
                         <div class="stat-card-val">{data['alloc_pct']:.2f}%</div>
                         <div class="stat-card-sub"><span class="sub-dot-blue"></span> {format_bytes(data['capacity_bytes'])} preserved</div>
+                    </div>
+                    <div class="stat-card-box">
+                        <div class="stat-card-title">Error Correction</div>
+                        <div class="stat-card-val">Active</div>
+                        <div class="stat-card-sub"><span class="sub-dot-green"></span> Reed-Solomon ECC (nsym={data.get('ecc_nsym', 20)})</div>
                     </div>
                 </div>
             </div>
@@ -1366,6 +1379,9 @@ if st.session_state.active_nav == "Hide Message":
                     <span>0 KB</span>
                     <span>{format_bytes(data['capacity_bytes'] // 2)} (50%)</span>
                     <span>{format_bytes(data['capacity_bytes'])} AVAILABLE</span>
+                </div>
+                <div style="margin-top:0.5rem; font-family:'JetBrains Mono', monospace; font-size:0.62rem; color:var(--muted);">
+                    <span style="color:var(--primary);">● Reed-Solomon ECC overhead: {data.get('ecc_nsym', 20)} parity bytes included in capacity calculation</span>
                 </div>
             </div>
             """,
@@ -1765,6 +1781,8 @@ if st.session_state.active_nav == "Hide Message":
                             "alloc_pct": alloc_pct,
                             "session_id": hashlib.sha256(ciphertext).hexdigest()[:8].upper(),
                             "key": stego_key_input,
+                            "ecc_nsym": stego_eng.nsym,
+                            "ecc_enabled": True,
                         }
 
                         # Save for analysis suite
@@ -1982,6 +2000,14 @@ elif st.session_state.active_nav == "Extract Message":
                     st.session_state.extract_error = None
                     st.rerun()
 
+                except reedsolo.ReedSolomonError as err:
+                    st.session_state.extract_error = {
+                        "code": "ERR_REEDSOLOMON_FAILED",
+                        "trace_id": hashlib.md5(str(err).encode()).hexdigest()[:12].upper(),
+                        "message": str(err),
+                    }
+                    st.session_state.extract_result = None
+                    st.rerun()
                 except Exception as err:
                     st.session_state.extract_error = {
                         "code": "ERR_RECOVERY_ABORTED",
@@ -2021,6 +2047,9 @@ elif st.session_state.active_nav == "Extract Message":
                 <div style="display:flex; justify-content:space-between; margin-top:0.6rem; font-family:'JetBrains Mono', monospace; font-size:0.64rem; color:var(--muted);">
                     <span>SHA-256 (PAYLOAD): {res['sha256']}</span>
                     <span style="color:var(--success); font-weight:700;">VALID PARITY BIT</span>
+                </div>
+                <div style="margin-top:0.4rem; font-family:'JetBrains Mono', monospace; font-size:0.62rem; color:var(--muted);">
+                    <span style="color:var(--primary);">● Reed-Solomon ECC: Active (nsym=20)</span>
                 </div>
             </div>
 
@@ -2094,6 +2123,7 @@ elif st.session_state.active_nav == "Extract Message":
                     &mdash; <strong>Stego key mismatch:</strong> The provided key does not generate the valid PRNG pseudorandom pixel coordinate sequence.<br/>
                     &mdash; <strong>Carrier corruption:</strong> The image may have undergone lossy compression (such as JPEG re-encoding), destroying LSB bitplane fidelity.<br/>
                     &mdash; <strong>No payload present:</strong> The selected file does not contain a StegoCrypt encrypted header.
+                    {("<br/>&mdash; <strong>Reed-Solomon ECC failure:</strong> The error correction code could not recover corrupted data. The image may have been modified beyond ECC tolerance." if err.get('code') == 'ERR_REEDSOLOMON_FAILED' else "")}
                 </div>
 
                 <div class="notice-box" style="margin-top:0.8rem; background:var(--surface-low); border-color:var(--border);">
