@@ -901,21 +901,23 @@ with tab1:
     if encrypt_btn:
         if cover_file and message.strip():
             try:
-                # 1. Encrypt message using ElGamal
-                message_bytes = message.encode('utf-8')
-                encrypted_message = st.session_state.elgamal.encrypt_bytes(
-                    message_bytes, 
-                    st.session_state.public_key
-                )
+                with st.spinner("🔐 Sedang melakukan enkripsi ElGamal..."):
+                    # 1. Encrypt message using ElGamal
+                    message_bytes = message.encode('utf-8')
+                    encrypted_message = st.session_state.elgamal.encrypt_bytes(
+                        message_bytes, 
+                        st.session_state.public_key
+                    )
                 
                 # 2. Check capacity
                 if len(encrypted_message) > capacity:
                     st.error(f"Pesan terlalu besar untuk gambar ini! Kapasitas: {capacity} bytes, Ukuran Data Terenkripsi: {len(encrypted_message)} bytes.")
                 else:
-                    # 3. Embed using LSB with PRNG and Reed-Solomon ECC
-                    seed_val = int(stego_key) if stego_key.isdigit() else int(hashlib.sha256(stego_key.encode()).hexdigest(), 16) % (2**31 - 1)
-                    stego = LSBSteganography(seed=seed_val, nsym=20)
-                    stego_array = stego.embed(cover_array, encrypted_message)
+                    with st.spinner("🔒 Sedang menyisipkan pesan dengan Reed-Solomon ECC..."):
+                        # 3. Embed using LSB with PRNG and Reed-Solomon ECC
+                        seed_val = int(stego_key) if stego_key.isdigit() else int(hashlib.sha256(stego_key.encode()).hexdigest(), 16) % (2**31 - 1)
+                        stego = LSBSteganography(seed=seed_val, nsym=20)
+                        stego_array = stego.embed(cover_array, encrypted_message)
                     
                     # 4. Calculate PSNR
                     psnr = stego.calculate_psnr(cover_array, stego_array)
@@ -1121,17 +1123,19 @@ with tab2:
     if decrypt_btn:
         if stego_file and stego_array is not None:
             try:
-                # 1. Extract using LSB with PRNG and Reed-Solomon error correction
-                seed_val = int(extract_stego_key) if extract_stego_key.isdigit() else int(hashlib.sha256(extract_stego_key.encode()).hexdigest(), 16) % (2**31 - 1)
-                stego = LSBSteganography(seed=seed_val, nsym=20, auto_detect_nsym=True)
-                encrypted_message = stego.extract(stego_array)
+                with st.spinner("🔓 Sedang mengekstrak pesan dengan Reed-Solomon ECC..."):
+                    # 1. Extract using LSB with PRNG and Reed-Solomon error correction
+                    seed_val = int(extract_stego_key) if extract_stego_key.isdigit() else int(hashlib.sha256(extract_stego_key.encode()).hexdigest(), 16) % (2**31 - 1)
+                    stego = LSBSteganography(seed=seed_val, nsym=20, auto_detect_nsym=True)
+                    encrypted_message = stego.extract(stego_array)
                 
-                # 2. Decrypt using ElGamal
-                decrypted_bytes = st.session_state.elgamal.decrypt_bytes(
-                    encrypted_message,
-                    st.session_state.private_key
-                )
-                decrypted_message = decrypted_bytes.decode('utf-8')
+                with st.spinner("🔑 Sedang mendekripsi dengan ElGamal..."):
+                    # 2. Decrypt using ElGamal
+                    decrypted_bytes = st.session_state.elgamal.decrypt_bytes(
+                        encrypted_message,
+                        st.session_state.private_key
+                    )
+                    decrypted_message = decrypted_bytes.decode('utf-8')
                 
                 st.markdown(
                     """
