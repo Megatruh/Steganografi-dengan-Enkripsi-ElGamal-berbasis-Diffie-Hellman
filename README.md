@@ -13,6 +13,9 @@ Aplikasi web berbasis Streamlit untuk melakukan steganografi pada gambar dengan 
    - Menambahkan parity bytes untuk koreksi error burst
    - Meningkatkan ketahanan terhadap kompresi lossy (JPEG)
    - Dapat memperbaiki error yang disebabkan oleh konversi PNG ke JPEG
+   - Menggunakan 20 parity symbols (nsym=20) untuk toleransi error yang lebih baik
+   - Auto-detection nsym untuk backward compatibility dengan stego image lama (nsym=10)
+   - Error handling spesifik untuk Reed-Solomon decoding failure
 
 3. **Steganografi LSB dengan PRNG**
    - Menyembunyikan pesan terenkripsi menggunakan metode LSB (Least Significant Bit)
@@ -25,6 +28,14 @@ Aplikasi web berbasis Streamlit untuk melakukan steganografi pada gambar dengan 
    - Metrik statistik (MSE, PSNR, MAE, Correlation)
 
 5. **Steganalisis Visual**
+   - Menampilkan bidang LSB (enhanced LSB)
+   - Analisis visual untuk mendeteksi keberadaan pesan tersembunyi
+
+6. **Verifikasi Integritas File**
+   - Menampilkan SHA-256 hash untuk file stego
+   - Memungkinkan verifikasi integritas file setelah transfer
+
+7. **Steganalisis Visual**
    - Menampilkan bidang LSB (enhanced LSB)
    - Analisis visual untuk mendeteksi keberadaan pesan tersembunyi
 
@@ -42,7 +53,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Aplikasi akan berjalan di `http://localhost:8501`
+Aplikasi akan berjalan di `http://localhost:8501` (default port mungkin berbeda tergantung konfigurasi)
 
 ## Cara Penggunaan
 
@@ -77,9 +88,11 @@ Aplikasi akan berjalan di `http://localhost:8501`
 .
 ├── app.py              # Streamlit web interface
 ├── elgamal.py          # Implementasi ElGamal encryption
-├── steganography.py    # Implementasi LSB steganography dengan PRNG
+├── steganography.py    # Implementasi LSB steganography dengan PRNG dan Reed-Solomon ECC
 ├── analysis.py         # Implementasi analisis histogram dan metrik
 ├── requirements.txt    # Dependencies
+├── clean_restart.sh   # Script untuk clean restart aplikasi
+├── .gitignore         # Git ignore configuration
 └── README.md          # Dokumentasi
 ```
 
