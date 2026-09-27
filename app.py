@@ -1018,12 +1018,12 @@ with tab1:
                             </div>
                             """
                         )
-                    
-                    # Save to session state for analysis
-                    st.session_state.stego_array = stego_array
-                    st.session_state.cover_array = cover_array
-                    st.session_state.stego_key = stego_key
-                    
+                
+                # Save to session state for analysis
+                st.session_state.stego_array = stego_array
+                st.session_state.cover_array = cover_array
+                st.session_state.stego_key = stego_key
+                
             except Exception as e:
                 st.error(f"Terjadi kesalahan saat enkripsi/penyisipan: {str(e)}")
         else:
