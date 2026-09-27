@@ -921,58 +921,58 @@ with tab1:
                 
                 # 4. Calculate PSNR
                 psnr = stego.calculate_psnr(cover_array, stego_array)
-                    
-                    # 5. Display Stego Image
-                    stego_image = Image.fromarray(stego_array)
-                    
+                
+                # 5. Display Stego Image
+                stego_image = Image.fromarray(stego_array)
+                
+                st.markdown(
+                    f"""
+                    <div class="stego-card" style="border-left: 4px solid var(--success); margin-top:1.2rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="card-title">Enkripsi &amp; Penyisipan Berhasil</div>
+                            <span class="badge-tag badge-success">PSNR: {psnr:.2f} dB</span>
+                        </div>
+                        <div style="color:var(--muted); font-size:0.8rem; margin-top:0.3rem;">
+                            Pesan ({len(encrypted_message)} bytes terenkripsi) berhasil disisipkan ke dalam citra stego.
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                col_res1, col_res2 = st.columns(2, gap="large")
+                with col_res1:
+                    st.image(stego_image, caption="Gambar Stego (Hasil)", use_container_width=True)
+                
+                with col_res2:
+                    buf = io.BytesIO()
+                    stego_image.save(buf, format='PNG')
+                    buf.seek(0)
+                    st.download_button(
+                        label="Download Gambar Stego (PNG)",
+                        data=buf,
+                        file_name="stego_image.png",
+                        mime="image/png",
+                        use_container_width=True
+                    )
                     st.markdown(
-                        f"""
-                        <div class="stego-card" style="border-left: 4px solid var(--success); margin-top:1.2rem;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <div class="card-title">Enkripsi &amp; Penyisipan Berhasil</div>
-                                <span class="badge-tag badge-success">PSNR: {psnr:.2f} dB</span>
-                            </div>
-                            <div style="color:var(--muted); font-size:0.8rem; margin-top:0.3rem;">
-                                Pesan ({len(encrypted_message)} bytes terenkripsi) berhasil disisipkan ke dalam citra stego.
-                            </div>
+                        """
+                        <div class="notice-box">
+                            <span class="notice-icon">i</span>
+                            <span>Gunakan format lossless PNG yang diunduh saat melakukan ekstraksi atau dekripsi pesan.</span>
                         </div>
                         """,
                         unsafe_allow_html=True,
                     )
 
-                    col_res1, col_res2 = st.columns(2, gap="large")
-                    with col_res1:
-                        st.image(stego_image, caption="Gambar Stego (Hasil)", use_container_width=True)
-                    
-                    with col_res2:
-                        buf = io.BytesIO()
-                        stego_image.save(buf, format='PNG')
-                        buf.seek(0)
-                        st.download_button(
-                            label="Download Gambar Stego (PNG)",
-                            data=buf,
-                            file_name="stego_image.png",
-                            mime="image/png",
-                            use_container_width=True
-                        )
-                        st.markdown(
-                            """
-                            <div class="notice-box">
-                                <span class="notice-icon">i</span>
-                                <span>Gunakan format lossless PNG yang diunduh saat melakukan ekstraksi atau dekripsi pesan.</span>
+                # Mathematical & Cipher Inspector
+                with st.expander("Inspeksi Matematis & Parameter Kriptografi", expanded=False):
+                    st.html(
+                        f"""
+                        <div class="inspector-box">
+                            <div style="font-weight:600; color:var(--primary); font-family:'Cinzel', serif; margin-bottom:0.4rem;">
+                                Parameter Enkripsi ElGamal-DH
                             </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
-
-                    # Mathematical & Cipher Inspector
-                    with st.expander("Inspeksi Matematis & Parameter Kriptografi", expanded=False):
-                        st.html(
-                            f"""
-                            <div class="inspector-box">
-                                <div style="font-weight:600; color:var(--primary); font-family:'Cinzel', serif; margin-bottom:0.4rem;">
-                                    Parameter Enkripsi ElGamal-DH
-                                </div>
                                 <div class="inspector-grid">
                                     <div class="inspector-item">
                                         <div class="inspector-label">Safe Prime Modulus (p)</div>
