@@ -1260,26 +1260,28 @@ with tab1:
         if cover_file and message.strip():
             try:
                 # 1. Enkripsi pesan menggunakan ElGamal
-                message_bytes = message.encode('utf-8')
-                encrypted_message = st.session_state.elgamal.encrypt_bytes(
-                    message_bytes, 
-                    st.session_state.public_key
-                )
+                with st.spinner("🔐 Sedang melakukan enkripsi ElGamal..."):
+                    message_bytes = message.encode('utf-8')
+                    encrypted_message = st.session_state.elgamal.encrypt_bytes(
+                        message_bytes, 
+                        st.session_state.public_key
+                    )
                 
                 # 2. Validasi kapasitas payload citra
                 if len(encrypted_message) > capacity:
                     st.error(f"Inskripsi melebihi kapasitas relief citra! Kapasitas: {capacity} bytes, Ukuran Data Terenkripsi: {len(encrypted_message)} bytes.")
                 else:
-                    # 3. Penyisipan LSB berbasis PRNG
-                    seed_val = int(stego_key) if stego_key.isdigit() else int(hashlib.sha256(stego_key.encode()).hexdigest(), 16) % (2**31 - 1)
-                    stego = LSBSteganography(seed=seed_val)
-                    stego_array = stego.embed(cover_array, encrypted_message)
-                    
-                    # 4. Kalkulasi kualitas imperceptibility citra (PSNR)
-                    psnr = stego.calculate_psnr(cover_array, stego_array)
-                    
-                    # 5. Konversi hasil array ke format gambar
-                    stego_image = Image.fromarray(stego_array)
+                    # 3. Penyisipan LSB berbasis PRNG dengan Reed-Solomon ECC
+                    with st.spinner("🔒 Sedang menyisipkan pesan dengan Reed-Solomon ECC..."):
+                        seed_val = int(stego_key) if stego_key.isdigit() else int(hashlib.sha256(stego_key.encode()).hexdigest(), 16) % (2**31 - 1)
+                        stego = LSBSteganography(seed=seed_val, nsym=20)
+                        stego_array = stego.embed(cover_array, encrypted_message)
+                        
+                        # 4. Kalkulasi kualitas imperceptibility citra (PSNR)
+                        psnr = stego.calculate_psnr(cover_array, stego_array)
+                        
+                        # 5. Konversi hasil array ke format gambar
+                        stego_image = Image.fromarray(stego_array)
                     
                     st.markdown(
                         f"""
@@ -1480,16 +1482,18 @@ with tab2:
         if stego_file and stego_array is not None:
             try:
                 # 1. Ekstraksi bit LSB berbasis PRNG
-                seed_val = int(extract_stego_key) if extract_stego_key.isdigit() else int(hashlib.sha256(extract_stego_key.encode()).hexdigest(), 16) % (2**31 - 1)
-                stego = LSBSteganography(seed=seed_val)
-                encrypted_message = stego.extract(stego_array)
+                with st.spinner("🔓 Sedang mengekstrak pesan dengan Reed-Solomon ECC..."):
+                    seed_val = int(extract_stego_key) if extract_stego_key.isdigit() else int(hashlib.sha256(extract_stego_key.encode()).hexdigest(), 16) % (2**31 - 1)
+                    stego = LSBSteganography(seed=seed_val, nsym=20, auto_detect_nsym=True)
+                    encrypted_message = stego.extract(stego_array)
                 
                 # 2. Dekripsi ElGamal
-                decrypted_bytes = st.session_state.elgamal.decrypt_bytes(
-                    encrypted_message,
-                    st.session_state.private_key
-                )
-                decrypted_message = decrypted_bytes.decode('utf-8')
+                with st.spinner("🔑 Sedang mendekripsi dengan ElGamal..."):
+                    decrypted_bytes = st.session_state.elgamal.decrypt_bytes(
+                        encrypted_message,
+                        st.session_state.private_key
+                    )
+                    decrypted_message = decrypted_bytes.decode('utf-8')
                 
                 st.markdown(
                     """
@@ -1722,10 +1726,11 @@ with tab3:
                 extracted_result = None
                 error_msg = ""
                 try:
-                    stego_test = LSBSteganography(seed=seed_val)
-                    extracted_raw = stego_test.extract(jpeg_arr)
-                    decrypted_res = st.session_state.elgamal.decrypt_bytes(extracted_raw, st.session_state.private_key)
-                    extracted_result = decrypted_res.decode('utf-8')
+                    with st.spinner(f"🧪 Menguji ekstraksi dari JPEG quality {quality}..."):
+                        stego_test = LSBSteganography(seed=seed_val, nsym=20, auto_detect_nsym=True)
+                        extracted_raw = stego_test.extract(jpeg_arr)
+                        decrypted_res = st.session_state.elgamal.decrypt_bytes(extracted_raw, st.session_state.private_key)
+                        extracted_result = decrypted_res.decode('utf-8')
                 except reedsolo.ReedSolomonError as e:
                     extraction_failed = True
                     error_msg = f"Reed-Solomon ECC mendeteksi korupsi data melebihi batas toleransi koreksi ({str(e)})"

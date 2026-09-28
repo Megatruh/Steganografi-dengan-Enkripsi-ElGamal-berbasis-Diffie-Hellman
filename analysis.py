@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from typing import Tuple
 import hashlib
 from PIL import Image
-
 # ── Ancient Egyptian Ruins Theme Palette ──
 _THEME = {
     "bg": "#13110E",              # Deep Obsidian Stone
