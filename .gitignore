@@ -44,3 +44,9 @@ Thumbs.db
 # *.jpg
 # *.jpeg
 # *.bmp
+
+# AI Agents & Assistants
+.agents/
+.claude/
+skills-lock.json
+skill-lock.json
