@@ -1369,208 +1369,249 @@ with tab4:
         """
         <div class="stego-card">
             <div class="card-title">Uji Kerapuhan Kompresi JPEG (JPEG Fragility Test)</div>
-            <div class="card-subtitle">Pengujian sifat kerapuhan (fragility) metode LSB spasial terhadap kompresi lossy JPEG. Kuantisasi koefisien DCT pada JPEG mendistorsi bit-bit LSB sehingga pesan rahasia tidak dapat dipulihkan — ini adalah perilaku yang diharapkan (by design).</div>
+            <div class="card-subtitle">Pengujian sifat kerapuhan (fragility) metode LSB spasial terhadap kompresi lossy JPEG. Citra stego hasil enkripsi dikompres ke JPEG, lalu sistem mencoba mendekripsi ulang menggunakan kunci yang sama — apakah pesan masih dapat dipulihkan?</div>
         </div>
         <div class="pipeline-container">
             <div class="pipeline-step">
                 <span class="pipeline-num">1</span>
-                <span class="pipeline-label">Pesan Plaintext</span>
+                <span class="pipeline-label">Citra Stego (dari Tab Enkripsi)</span>
             </div>
             <span class="pipeline-arrow">&rarr;</span>
             <div class="pipeline-step">
                 <span class="pipeline-num">2</span>
-                <span class="pipeline-label">Sisip LSB ke Cover</span>
-            </div>
-            <span class="pipeline-arrow">&rarr;</span>
-            <div class="pipeline-step">
-                <span class="pipeline-num">3</span>
                 <span class="pipeline-label">Kompresi JPEG (Lossy)</span>
             </div>
             <span class="pipeline-arrow">&rarr;</span>
             <div class="pipeline-step">
+                <span class="pipeline-num">3</span>
+                <span class="pipeline-label">Ekstraksi LSB + Dekripsi ElGamal</span>
+            </div>
+            <span class="pipeline-arrow">&rarr;</span>
+            <div class="pipeline-step">
                 <span class="pipeline-num">4</span>
-                <span class="pipeline-label">Ekstraksi LSB &rarr; Gagal?</span>
+                <span class="pipeline-label">Hasil: Berhasil / Gagal?</span>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    uji_col1, uji_col2 = st.columns(2, gap="large")
-
-    with uji_col1:
-        st.markdown("<div style='font-family:\"JetBrains Mono\", monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.4rem;'>Gambar Uji (Cover Image)</div>", unsafe_allow_html=True)
-        uji_file = st.file_uploader("Upload Gambar", type=['png', 'jpg', 'jpeg', 'bmp'], key="uji_file_uploader")
-        uji_cover_array = None
-        if uji_file:
-            uji_img = Image.open(uji_file)
-            uji_cover_array = np.array(uji_img)
-            if len(uji_cover_array.shape) == 2:
-                uji_cover_array = np.stack([uji_cover_array] * 3, axis=2)
-            elif uji_cover_array.shape[2] == 4:
-                uji_cover_array = uji_cover_array[:, :, :3]
-            st.image(uji_img, caption="Gambar Cover (Original)", use_container_width=True)
-
-    with uji_col2:
-        st.markdown("<div style='font-family:\"JetBrains Mono\", monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.4rem;'>Parameter Pengujian</div>", unsafe_allow_html=True)
-        pesan_uji = st.text_input("Pesan Rahasia (Plaintext)", value="Ini pesan rahasia!", key="pesan_uji_input")
-        kualitas_jpeg = st.select_slider(
-            "Kualitas Kompresi JPEG (Quality Factor)",
-            options=[95, 90, 80, 70, 60, 50, 40, 30],
-            value=70,
-            key="uji_jpeg_quality",
-            help="Semakin rendah kualitas, semakin parah kerusakan LSB akibat kuantisasi DCT."
+    # Check whether encryption has been done in this session
+    if 'stego_array' not in st.session_state or st.session_state.stego_array is None:
+        st.markdown(
+            """
+            <div class="notice-box" style="margin-top:1rem;">
+                <span class="notice-icon">i</span>
+                <span>Lakukan <strong>Enkripsi & Penyisipan</strong> terlebih dahulu pada tab <strong>Enkripsi</strong> untuk menggunakan fitur ini. Citra stego dari sesi aktif akan digunakan sebagai input pengujian.</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
+    else:
+        stego_for_test = st.session_state.stego_array
 
-        st.markdown("<div style='height:0.6rem;'></div>", unsafe_allow_html=True)
-        run_fragility_btn = st.button(
-            "Jalankan Uji Kerapuhan JPEG",
-            type="primary",
-            use_container_width=True,
-            key="btn_uji_fragility"
-        )
+        # Parameter panel
+        uji_col1, uji_col2 = st.columns(2, gap="large")
 
-    if run_fragility_btn:
-        if uji_cover_array is None:
-            st.warning("Upload gambar cover terlebih dahulu!")
-        else:
-            pesan_bytes = pesan_uji.encode('utf-8')
-            stego_rentan = LSBSteganography(nsym=0)
+        with uji_col1:
+            st.markdown("<div style='font-family:\"JetBrains Mono\", monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.4rem;'>Citra Stego (Sesi Enkripsi Aktif)</div>", unsafe_allow_html=True)
+            st.image(Image.fromarray(stego_for_test), caption="Citra Stego yang akan dikompres", use_container_width=True)
 
-            with st.status("Menjalankan Uji Kerapuhan LSB vs. JPEG...", expanded=True) as status_box:
-                st.write("① Menyisipkan pesan ke bit LSB citra cover...")
-                stego_rentan_array = stego_rentan.embed(uji_cover_array, pesan_bytes)
-
-                st.write(f"② Mengompresi citra stego ke format JPEG (Quality Factor = {kualitas_jpeg}%)...")
-                jpeg_array, jpeg_size = simulate_jpeg_compression(stego_rentan_array, quality=kualitas_jpeg)
-                jpeg_metrics = calculate_statistical_metrics(stego_rentan_array, jpeg_array)
-
-                st.write("③ Mencoba mengekstrak ulang pesan dari citra JPEG...")
-                extraction_failed = False
-                extracted_raw = None
-                error_detail = ""
-                try:
-                    extracted_raw = stego_rentan.extract(jpeg_array)
-                except Exception as e:
-                    extraction_failed = True
-                    error_detail = str(e)
-
-                status_box.update(label="Uji selesai.", state="complete")
-
-            # Show stego vs jpeg side by side
-            st.markdown(
-                """
-                <div class="stego-card" style="margin-top:1rem;">
-                    <div class="card-title" style="margin-bottom:0.75rem;">Perbandingan Visual: Stego vs. JPEG</div>
-                """,
-                unsafe_allow_html=True,
+        with uji_col2:
+            st.markdown("<div style='font-family:\"JetBrains Mono\", monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.4rem;'>Parameter Pengujian</div>", unsafe_allow_html=True)
+            stego_key_for_test = st.text_input(
+                "Stego Key (sama seperti saat enkripsi)",
+                value="",
+                placeholder="Masukkan stego key yang digunakan saat enkripsi...",
+                key="uji_stego_key_input",
+                help="Stego key harus sama persis dengan yang digunakan pada tab Enkripsi."
             )
-            col_vj1, col_vj2 = st.columns(2, gap="large")
-            with col_vj1:
-                st.image(Image.fromarray(stego_rentan_array), caption="Citra Stego (Sebelum Kompresi JPEG)", use_container_width=True)
-            with col_vj2:
-                st.image(Image.fromarray(jpeg_array), caption=f"Citra setelah Kompresi JPEG (Q={kualitas_jpeg})", use_container_width=True)
-            st.markdown("</div>", unsafe_allow_html=True)
-
-            # Metrics
-            st.markdown(
-                """
-                <div class="stego-card">
-                    <div class="card-title" style="margin-bottom:0.75rem;">Metrik Distorsi Akibat Kompresi JPEG</div>
-                """,
-                unsafe_allow_html=True,
+            kualitas_jpeg = st.select_slider(
+                "Kualitas Kompresi JPEG (Quality Factor)",
+                options=[95, 90, 80, 70, 60, 50, 40, 30],
+                value=70,
+                key="uji_jpeg_quality",
+                help="Semakin rendah kualitas, semakin parah kerusakan LSB akibat kuantisasi DCT."
             )
-            col_jm1, col_jm2, col_jm3, col_jm4 = st.columns(4)
-            with col_jm1:
-                st.metric("MSE", f"{jpeg_metrics['MSE']:.4f}")
-            with col_jm2:
-                st.metric("PSNR", f"{jpeg_metrics['PSNR']:.2f} dB")
-            with col_jm3:
-                st.metric("MAE", f"{jpeg_metrics['MAE']:.4f}")
-            with col_jm4:
-                st.metric("Ukuran JPEG", f"{jpeg_size/1024:.1f} KB")
-            st.markdown(
-                f"""
-                <div class="notice-box" style="margin-top:0.75rem;">
-                    <span class="notice-icon">i</span>
-                    <span>PSNR {jpeg_metrics['PSNR']:.2f} dB antara citra stego asli dan versi JPEG. Semakin rendah PSNR, semakin banyak bit LSB yang berubah akibat kuantisasi DCT JPEG.</span>
-                </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
+            st.markdown("<div style='height:0.6rem;'></div>", unsafe_allow_html=True)
+            run_fragility_btn = st.button(
+                "Jalankan Uji Kerapuhan JPEG",
+                type="primary",
+                use_container_width=True,
+                key="btn_uji_fragility"
             )
 
-            # Fragility result
-            st.markdown(
-                """
-                <div class="stego-card">
-                    <div class="card-title" style="margin-bottom:0.6rem;">Hasil Uji Kerapuhan Ekstraksi LSB</div>
-                """,
-                unsafe_allow_html=True,
-            )
-            if extraction_failed:
-                # Full failure — header itself corrupted
+        if run_fragility_btn:
+            if not stego_key_for_test.strip():
+                st.warning("Masukkan stego key terlebih dahulu!")
+            else:
+                with st.status("Menjalankan Uji Kerapuhan LSB vs. JPEG...", expanded=True) as status_box:
+                    # Step 1: Compress stego image to JPEG
+                    st.write(f"① Mengompresi citra stego ke format JPEG (Quality Factor = {kualitas_jpeg}%)...")
+                    jpeg_array, jpeg_size = simulate_jpeg_compression(stego_for_test, quality=kualitas_jpeg)
+                    jpeg_metrics = calculate_statistical_metrics(stego_for_test, jpeg_array)
+
+                    # Step 2: Try to extract LSB from JPEG
+                    st.write("② Mencoba mengekstrak bit LSB dari citra JPEG...")
+                    seed_val = (
+                        int(stego_key_for_test) if str(stego_key_for_test).isdigit()
+                        else int(hashlib.sha256(str(stego_key_for_test).encode()).hexdigest(), 16) % (2**31 - 1)
+                    )
+                    extractor = LSBSteganography(seed=seed_val, nsym=20, auto_detect_nsym=True)
+
+                    extraction_failed = False
+                    decryption_failed = False
+                    extracted_raw = None
+                    decrypted_text = None
+                    error_detail = ""
+
+                    try:
+                        extracted_raw = extractor.extract(jpeg_array)
+                    except Exception as e:
+                        extraction_failed = True
+                        error_detail = str(e)
+
+                    # Step 3: If extraction succeeded, try ElGamal decrypt
+                    if not extraction_failed:
+                        st.write("③ Mencoba mendekripsi payload dengan ElGamal menggunakan private key sesi aktif...")
+                        try:
+                            decrypted_bytes = st.session_state.elgamal.decrypt_bytes(
+                                extracted_raw,
+                                st.session_state.private_key
+                            )
+                            decrypted_text = decrypted_bytes.decode('utf-8', errors='replace')
+                        except Exception as e:
+                            decryption_failed = True
+                            error_detail = str(e)
+
+                    status_box.update(label="Uji selesai.", state="complete")
+
+                # ── Visual comparison ──
+                st.markdown(
+                    """
+                    <div class="stego-card" style="margin-top:1rem;">
+                        <div class="card-title" style="margin-bottom:0.75rem;">Perbandingan Visual: Stego vs. Setelah Kompresi JPEG</div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                col_vj1, col_vj2 = st.columns(2, gap="large")
+                with col_vj1:
+                    st.image(Image.fromarray(stego_for_test), caption="Citra Stego (Sebelum Kompresi JPEG)", use_container_width=True)
+                with col_vj2:
+                    st.image(Image.fromarray(jpeg_array), caption=f"Citra setelah Kompresi JPEG (Q={kualitas_jpeg})", use_container_width=True)
+                st.markdown("</div>", unsafe_allow_html=True)
+
+                # ── Distortion metrics ──
+                st.markdown(
+                    """
+                    <div class="stego-card">
+                        <div class="card-title" style="margin-bottom:0.75rem;">Metrik Distorsi Akibat Kompresi JPEG</div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                col_jm1, col_jm2, col_jm3, col_jm4 = st.columns(4)
+                with col_jm1:
+                    st.metric("MSE", f"{jpeg_metrics['MSE']:.4f}")
+                with col_jm2:
+                    st.metric("PSNR", f"{jpeg_metrics['PSNR']:.2f} dB")
+                with col_jm3:
+                    st.metric("MAE", f"{jpeg_metrics['MAE']:.4f}")
+                with col_jm4:
+                    st.metric("Ukuran JPEG", f"{jpeg_size/1024:.1f} KB")
                 st.markdown(
                     f"""
-                    <div class="notice-box" style="border-color:var(--error); margin-bottom:0.8rem;">
-                        <span class="notice-icon" style="color:var(--error); font-size:1rem;">✕</span>
-                        <div>
-                            <strong style="color:var(--error); font-size:0.9rem;">EKSTRAKSI GAGAL TOTAL — Sifat Kerapuhan (Fragility) Terbukti</strong><br>
-                            <span style="font-size:0.76rem; color:var(--muted); margin-top:0.3rem; display:block;">Kompresi JPEG (Q={kualitas_jpeg}) merusak bit-bit LSB pada header panjang pesan, sehingga proses ekstraksi tidak dapat dimulai sama sekali.</span>
-                            <span style="font-family:'JetBrains Mono', monospace; font-size:0.7rem; color:var(--muted-light); margin-top:0.4rem; display:block;">Error: {error_detail}</span>
-                        </div>
+                    <div class="notice-box" style="margin-top:0.75rem;">
+                        <span class="notice-icon">i</span>
+                        <span>PSNR <strong>{jpeg_metrics['PSNR']:.2f} dB</strong> antara citra stego asli dan versi JPEG. Semakin rendah PSNR, semakin banyak bit LSB yang berubah akibat kuantisasi DCT JPEG.</span>
+                    </div>
                     </div>
                     """,
                     unsafe_allow_html=True,
                 )
-            else:
-                # Extracted but content may be garbage
-                try:
-                    extracted_text = extracted_raw.decode('utf-8', errors='replace')
-                except Exception:
-                    extracted_text = repr(extracted_raw)
 
-                if extracted_raw == pesan_bytes:
-                    st.markdown(
-                        f"""
-                        <div class="notice-box" style="border-color:var(--success); margin-bottom:0.8rem;">
-                            <span class="notice-icon" style="color:var(--success);">✓</span>
-                            <div>
-                                <strong style="color:var(--success);">Tidak Rusak pada Quality Factor {kualitas_jpeg} — Coba Turunkan Kualitas</strong><br>
-                                <span style="font-size:0.76rem; color:var(--muted);">Pesan berhasil terekstrak utuh. Coba gunakan quality factor lebih rendah untuk melihat efek kerapuhan.</span>
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-                else:
+                # ── Result box ──
+                st.markdown(
+                    """
+                    <div class="stego-card">
+                        <div class="card-title" style="margin-bottom:0.6rem;">Hasil Uji: Ekstraksi + Dekripsi ElGamal</div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                if extraction_failed:
                     st.markdown(
                         f"""
                         <div class="notice-box" style="border-color:var(--error); margin-bottom:0.8rem;">
                             <span class="notice-icon" style="color:var(--error); font-size:1rem;">✕</span>
                             <div>
-                                <strong style="color:var(--error); font-size:0.9rem;">PESAN RUSAK — Sifat Kerapuhan (Fragility) Terbukti</strong><br>
-                                <span style="font-size:0.76rem; color:var(--muted); margin-top:0.3rem; display:block;">Pesan berhasil terbaca secara teknis, namun isinya hancur akibat distorsi kuantisasi koefisien DCT JPEG pada Q={kualitas_jpeg}.</span>
+                                <strong style="color:var(--error); font-size:0.9rem;">EKSTRAKSI LSB GAGAL — Kerapuhan (Fragility) Terbukti</strong><br>
+                                <span style="font-size:0.76rem; color:var(--muted); margin-top:0.3rem; display:block;">Kompresi JPEG (Q={kualitas_jpeg}) merusak bit-bit LSB — header panjang pesan hancur sehingga proses ekstraksi tidak dapat dimulai.</span>
+                                <span style="font-family:'JetBrains Mono', monospace; font-size:0.7rem; color:var(--muted-light); margin-top:0.4rem; display:block;">Error: {error_detail}</span>
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                elif decryption_failed:
+                    st.markdown(
+                        f"""
+                        <div class="notice-box" style="border-color:var(--error); margin-bottom:0.8rem;">
+                            <span class="notice-icon" style="color:var(--error); font-size:1rem;">✕</span>
+                            <div>
+                                <strong style="color:var(--error); font-size:0.9rem;">DEKRIPSI ELGAMAL GAGAL — Payload Rusak</strong><br>
+                                <span style="font-size:0.76rem; color:var(--muted); margin-top:0.3rem; display:block;">Bit LSB berhasil terbaca sebagian, namun data yang terekstrak tidak valid untuk didekripsi menggunakan ElGamal — isi payload telah korup akibat distorsi JPEG (Q={kualitas_jpeg}).</span>
+                                <span style="font-family:'JetBrains Mono', monospace; font-size:0.7rem; color:var(--muted-light); margin-top:0.4rem; display:block;">Error: {error_detail}</span>
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown(
+                        f"""
+                        <div class="notice-box" style="border-color:var(--success); margin-bottom:0.8rem;">
+                            <span class="notice-icon" style="color:var(--success);">✓</span>
+                            <div>
+                                <strong style="color:var(--success);">DEKRIPSI BERHASIL pada Quality Factor {kualitas_jpeg}</strong><br>
+                                <span style="font-size:0.76rem; color:var(--muted);">Pesan berhasil diekstrak dan didekripsi. Coba turunkan quality factor untuk melihat efek kerapuhan.</span>
                             </div>
                         </div>
                         """,
                         unsafe_allow_html=True,
                     )
 
-            col_frag1, col_frag2 = st.columns(2, gap="large")
-            with col_frag1:
-                st.markdown("<div style='font-size:0.72rem; color:var(--muted); font-family:\"JetBrains Mono\", monospace; text-transform:uppercase; margin-bottom:0.3rem;'>Pesan Asli (Disisipkan)</div>", unsafe_allow_html=True)
-                st.code(pesan_uji, language="text")
-            with col_frag2:
-                if extraction_failed:
-                    st.markdown("<div style='font-size:0.72rem; color:var(--error); font-family:\"JetBrains Mono\", monospace; text-transform:uppercase; margin-bottom:0.3rem;'>Hasil Ekstraksi dari JPEG</div>", unsafe_allow_html=True)
-                    st.code(f"[GAGAL BACA] Header pesan hancur.\nError: {error_detail}", language="text")
-                else:
-                    label_color = 'var(--success)' if extracted_raw == pesan_bytes else 'var(--error)'
-                    st.markdown(f"<div style='font-size:0.72rem; color:{label_color}; font-family:\"JetBrains Mono\", monospace; text-transform:uppercase; margin-bottom:0.3rem;'>Hasil Ekstraksi dari JPEG (Q={kualitas_jpeg})</div>", unsafe_allow_html=True)
-                    st.code(extracted_text, language="text")
+                # Side-by-side: extracted payload vs decrypted result
+                col_frag1, col_frag2 = st.columns(2, gap="large")
+                with col_frag1:
+                    st.markdown("<div style='font-size:0.72rem; color:var(--muted); font-family:\"JetBrains Mono\", monospace; text-transform:uppercase; margin-bottom:0.3rem;'>Payload Terekstrak (Sebelum Dekripsi)</div>", unsafe_allow_html=True)
+                    if extraction_failed:
+                        st.code(f"[GAGAL] Header pesan hancur.\nError: {error_detail}", language="text")
+                    else:
+                        st.code(f"[{len(extracted_raw)} bytes ciphertext ElGamal terekstrak]", language="text")
 
-            st.markdown("</div>", unsafe_allow_html=True)
+                with col_frag2:
+                    st.markdown("<div style='font-size:0.72rem; color:var(--muted); font-family:\"JetBrains Mono\", monospace; text-transform:uppercase; margin-bottom:0.3rem;'>Hasil Dekripsi ElGamal</div>", unsafe_allow_html=True)
+                    if extraction_failed:
+                        st.code("[Tidak tersedia — ekstraksi gagal]", language="text")
+                    elif decryption_failed:
+                        st.code(f"[GAGAL DEKRIPSI]\nError: {error_detail}", language="text")
+                    else:
+                        st.code(decrypted_text, language="text")
+
+                st.markdown("</div>", unsafe_allow_html=True)
+
+# Footer
+st.markdown(
+    """
+    <div class="footer-wrap">
+        <p style="margin:0 0 0.25rem 0; font-weight:600; color:var(--text);">Steganografi dengan Enkripsi ElGamal berbasis Diffie-Hellman</p>
+        <p style="margin:0; font-size:0.74rem; color:var(--muted);">Tugas Mata Kuliah Keamanan Informasi</p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
 
 # Footer
 st.markdown(
