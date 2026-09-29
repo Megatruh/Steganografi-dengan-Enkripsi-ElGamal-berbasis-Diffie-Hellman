@@ -428,10 +428,30 @@ st.markdown(
         color: var(--text) !important;
     }
 
-    [data-testid="stFileUploaderDropzone"] small {
+    [data-testid="stFileUploaderDropzone"] > div > div > div > div > small,
+    [data-testid="stFileUploaderDropzone"] > div > div > div > span {
+        font-size: 0 !important;
+    }
+
+    [data-testid="stFileUploaderDropzone"] > div > div > div > span::after,
+    [data-testid="stFileUploaderDropzone"] > div > div > div > div > small::after {
+        content: "maksimal 200 MB (png, jpg, bmp, jpeg)";
+        font-size: 0.72rem;
         color: var(--muted) !important;
         font-family: "JetBrains Mono", monospace !important;
-        font-size: 0.72rem !important;
+        visibility: visible;
+        display: block;
+    }
+
+    /* Additional selector to target modern Streamlit file uploader helper text */
+    [data-testid="stFileUploaderDropzoneInstructions"] > div > span {
+        font-size: 0 !important;
+    }
+    [data-testid="stFileUploaderDropzoneInstructions"] > div > span::after {
+        content: "maksimal 200 MB (png, jpg, bmp, jpeg)";
+        font-size: 0.72rem;
+        visibility: visible;
+        display: block;
     }
 
     [data-testid="stFileUploaderDropzone"] button {
