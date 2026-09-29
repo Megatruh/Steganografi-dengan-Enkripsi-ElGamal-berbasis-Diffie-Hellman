@@ -50,3 +50,7 @@ Thumbs.db
 .claude/
 skills-lock.json
 skill-lock.json
+
+# Documentation
+# SRS.md (tracked for project documentation)
+WORKFLOW.md
