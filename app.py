@@ -47,34 +47,76 @@ def loading_operation(message):
 
 # Page configuration
 st.set_page_config(
-    page_title="Steganografi Citra - ElGamal Diffie-Hellman",
+    page_title="StegoCipher — Ancient Egyptian Cryptographic Sanctuary",
+    page_icon="🏛️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom Design System - Egyptian Sandstone Dark Theme
+# Custom Design System: Ancient Egyptian Ruins × Modern Cryptography
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
     :root {
-        --bg: #1c1917;
-        --surface: #24201d;
-        --surface-low: #1f1c19;
-        --surface-high: #2d2925;
-        --border: #3c3630;
-        --border-subtle: #302b26;
-        --primary: #c68a35;
-        --primary-hover: #d69740;
-        --primary-soft: #2b2316;
-        --text: #f3eee6;
-        --muted: #a49887;
-        --muted-light: #706657;
-        --success: #48a972;
-        --success-soft: #1a2b22;
-        --error: #cf584f;
-        --error-soft: #2d1b1b;
+        /* Core Palette: Ancient Egyptian Ruins */
+        --bg: #13110E;
+        --surface: #1E1A15;
+        --surface-ground: #13110E;
+        --surface-card: #201B15;
+        --surface-low: #171410;
+        --surface-high: #2A241D;
+        --surface-elevated: #332B22;
+        
+        /* Stone Masonry & Borders */
+        --border: #3D3428;
+        --border-subtle: #2A241C;
+        --border-light: #524637;
+        
+        /* Sandstone & Gold */
+        --sandstone: #C6A66B;
+        --sandstone-light: #D8BC82;
+        --gold: #B9964F;
+        --gold-light: #D0AE62;
+        --gold-soft: rgba(208, 174, 98, 0.12);
+        --gold-glow: rgba(208, 174, 98, 0.22);
+        
+        /* Papyrus & Reading Surfaces */
+        --papyrus: #F1E6C8;
+        --papyrus-dark: #E8D9B5;
+        --papyrus-muted: #D1C3A3;
+        
+        /* Deep Stone / Obsidian */
+        --obsidian: #171512;
+        --obsidian-card: #24201A;
+        --obsidian-high: #302A21;
+        
+        /* Lapis Lazuli (Secondary Accent) */
+        --lapis: #214C70;
+        --lapis-hover: #2E6388;
+        --lapis-light: #3D7EA8;
+        --lapis-soft: rgba(33, 76, 112, 0.22);
+        --lapis-border: rgba(46, 99, 136, 0.45);
+        
+        /* Egyptian Turquoise (Status / Success / Highlight) */
+        --turquoise: #2F7F78;
+        --turquoise-hover: #3C9A91;
+        --turquoise-soft: rgba(47, 127, 120, 0.16);
+        --turquoise-border: rgba(60, 154, 145, 0.4);
+        
+        /* Muted Copper & Red Jasper (Warning / Error) */
+        --copper: #9A6844;
+        --copper-light: #B17B52;
+        --copper-soft: rgba(177, 123, 82, 0.18);
+        --jasper-red: #C25B45;
+        --jasper-soft: rgba(194, 91, 69, 0.18);
+        
+        /* Neutral Typography */
+        --text: #F1E6C8;
+        --text-secondary: #D8BC82;
+        --muted: #A3937F;
+        --muted-light: #736758;
     }
 
     * {
@@ -82,21 +124,32 @@ st.markdown(
     }
 
     html, body, [class*="css"] {
-        font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         -webkit-font-smoothing: antialiased;
-    }
-
-    .stApp {
+        -moz-osx-font-smoothing: grayscale;
         background-color: var(--bg);
         color: var(--text);
     }
 
-    /* Header setup & Sidebar toggle button */
+    /* Atmospheric Stone Background Texture with Subtle Architectural Vignette */
+    .stApp {
+        background-color: var(--bg);
+        background-image: 
+            radial-gradient(circle at 50% 0%, rgba(198, 166, 107, 0.05) 0%, transparent 60%),
+            radial-gradient(circle at 100% 100%, rgba(33, 76, 112, 0.04) 0%, transparent 50%),
+            linear-gradient(180deg, #16130F 0%, #13110E 40%, #0E0C0A 100%);
+        background-attachment: fixed;
+        color: var(--text);
+    }
+
+    /* ------------------------------------------------------------
+       HEADER & TOPBAR
+       ------------------------------------------------------------ */
     [data-testid="stHeader"] {
         background: transparent !important;
         color: var(--text) !important;
         z-index: 1001 !important;
-        height: 54px !important;
+        height: 48px !important;
         pointer-events: none !important;
     }
 
@@ -105,7 +158,7 @@ st.markdown(
         pointer-events: none !important;
         visibility: visible !important;
         display: flex !important;
-        height: 54px !important;
+        height: 48px !important;
         padding-left: 10px !important;
     }
 
@@ -129,7 +182,7 @@ st.markdown(
 
     [data-testid="stExpandSidebarButton"] {
         position: fixed !important;
-        top: 8px !important;
+        top: 6px !important;
         left: 12px !important;
         z-index: 1002 !important;
     }
@@ -137,14 +190,14 @@ st.markdown(
     [data-testid="stExpandSidebarButton"] button,
     [data-testid="stSidebarCollapseButton"] button,
     [data-testid="collapsedControl"] button {
-        background: var(--surface) !important;
+        background: var(--surface-card) !important;
         border: 1px solid var(--border) !important;
-        color: var(--primary) !important;
-        border-radius: 6px !important;
+        color: var(--sandstone) !important;
+        border-radius: 5px !important;
         transition: all 0.15s ease !important;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
-        width: 36px !important;
-        height: 36px !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35) !important;
+        width: 32px !important;
+        height: 32px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -154,22 +207,22 @@ st.markdown(
     [data-testid="stExpandSidebarButton"] button:hover,
     [data-testid="stSidebarCollapseButton"] button:hover,
     [data-testid="collapsedControl"] button:hover {
-        background: var(--surface-high) !important;
-        border-color: var(--primary) !important;
-        color: var(--primary-hover) !important;
+        background: var(--surface-elevated) !important;
+        border-color: var(--sandstone-light) !important;
+        color: var(--sandstone-light) !important;
     }
 
     [data-testid="stExpandSidebarButton"] svg,
     [data-testid="stSidebarCollapseButton"] svg,
     [data-testid="collapsedControl"] svg {
-        fill: var(--primary) !important;
-        stroke: var(--primary) !important;
-        color: var(--primary) !important;
+        fill: var(--sandstone) !important;
+        stroke: var(--sandstone) !important;
+        color: var(--sandstone) !important;
     }
 
     .block-container {
-        max-width: 1140px;
-        padding-top: 4.8rem;
+        max-width: 1200px;
+        padding-top: 4.2rem;
         padding-bottom: 3.5rem;
     }
 
@@ -177,7 +230,7 @@ st.markdown(
         font-family: "Cinzel", Georgia, serif !important;
         color: var(--text) !important;
         font-weight: 700;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.03em;
     }
 
     p, span, label, div {
@@ -192,18 +245,20 @@ st.markdown(
         font-family: "JetBrains Mono", monospace !important;
     }
 
-    /* ---------------- TOPBAR ---------------- */
+    /* ------------------------------------------------------------
+       TOPBAR
+       ------------------------------------------------------------ */
     .topbar {
         position: fixed;
         z-index: 99;
         top: 0;
         left: 0;
         right: 0;
-        height: 54px;
+        height: 48px;
         padding-left: 56px;
         padding-right: 2rem;
-        background: rgba(28, 25, 23, 0.94);
-        backdrop-filter: blur(10px);
+        background: rgba(19, 17, 14, 0.96);
+        backdrop-filter: blur(12px);
         border-bottom: 1px solid var(--border);
         display: flex;
         align-items: center;
@@ -218,29 +273,53 @@ st.markdown(
     .topbar-left {
         display: flex;
         align-items: center;
-        gap: 0.65rem;
+        gap: 0.75rem;
     }
 
     .topbar-title {
         font-family: "Cinzel", serif;
-        font-size: 0.92rem;
-        font-weight: 700;
-        color: var(--primary);
-        letter-spacing: 0.02em;
+        font-size: 0.94rem;
+        font-weight: 800;
+        color: var(--sandstone);
+        letter-spacing: 0.04em;
     }
 
     .topbar-sep {
         color: var(--muted-light);
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
 
     .topbar-sub {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.74rem;
+        font-family: "Inter", sans-serif;
+        font-size: 0.82rem;
         color: var(--muted);
     }
 
-    /* ---------------- SIDEBAR ---------------- */
+    .topbar-badge {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        background: var(--turquoise-soft);
+        border: 1px solid var(--turquoise-border);
+        color: var(--turquoise-hover);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .topbar-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: var(--turquoise-hover);
+        box-shadow: 0 0 6px var(--turquoise-hover);
+    }
+
+    /* ------------------------------------------------------------
+       SIDEBAR
+       ------------------------------------------------------------ */
     section[data-testid="stSidebar"] {
         background-color: var(--surface);
         border-right: 1px solid var(--border);
@@ -248,148 +327,161 @@ st.markdown(
     }
 
     section[data-testid="stSidebar"] > div {
-        padding: 1.3rem 1.15rem;
+        padding: 1.4rem 1.2rem;
     }
 
     .brand-wrap {
-        padding-bottom: 1.1rem;
+        padding-bottom: 1.2rem;
         border-bottom: 1px solid var(--border);
-        margin-bottom: 1.2rem;
+        margin-bottom: 1.3rem;
     }
 
     .brand-title {
         font-family: "Cinzel", serif !important;
-        font-size: 1.12rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        color: var(--primary) !important;
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: var(--sandstone) !important;
     }
 
     .brand-subtitle {
         color: var(--muted);
-        font-size: 0.72rem;
-        margin-top: 0.2rem;
+        font-size: 0.73rem;
+        margin-top: 0.25rem;
     }
 
     .sidebar-section-title {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.65rem;
-        font-weight: 600;
+        font-family: "Cinzel", Georgia, serif;
+        font-size: 0.82rem;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: var(--muted);
-        margin-bottom: 0.55rem;
+        color: var(--sandstone);
+        margin-bottom: 0.6rem;
     }
 
     .param-box {
         background: var(--surface-low);
         border: 1px solid var(--border);
         border-radius: 6px;
-        padding: 0.75rem 0.85rem;
-        margin-bottom: 0.8rem;
-        font-size: 0.78rem;
+        padding: 0.9rem 1rem;
+        margin-bottom: 0.85rem;
+        font-size: 0.82rem;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+        transition: border-color 0.25s ease;
+    }
+
+    .param-box:hover {
+        border-color: var(--sandstone);
     }
 
     .param-label {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.62rem;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        font-weight: 600;
+        font-family: "Cinzel", Georgia, serif;
+        font-size: 0.74rem;
+        color: var(--sandstone);
+        letter-spacing: 0.03em;
+        font-weight: 700;
     }
 
     .param-val {
         font-family: "JetBrains Mono", monospace;
-        font-size: 0.75rem;
+        font-size: 0.76rem;
         color: var(--text);
         word-break: break-all;
-        margin-top: 0.15rem;
+        margin-top: 0.18rem;
     }
 
-    /* ---------------- CARDS & BOXES ---------------- */
+    .brand-accent {
+        color: var(--sandstone-light);
+    }
+
+    /* ------------------------------------------------------------
+       CARDS & BOXES
+       ------------------------------------------------------------ */
     .stego-card {
-        background: var(--surface);
+        background: var(--surface-card);
         border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 1.25rem;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-        margin-bottom: 1.2rem;
+        border-radius: 6px;
+        padding: 1.3rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        margin-bottom: 1.3rem;
     }
 
     .card-title {
         font-family: "Cinzel", Georgia, serif !important;
-        font-size: 1.05rem;
+        font-size: 1.08rem;
         font-weight: 700;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.03em;
         color: var(--text) !important;
     }
 
     .card-subtitle {
-        margin-top: 0.25rem;
+        margin-top: 0.3rem;
         color: var(--muted);
-        font-size: 0.78rem;
-        line-height: 1.45;
+        font-size: 0.79rem;
+        line-height: 1.48;
     }
 
     .notice-box {
-        margin-top: 0.85rem;
-        padding: 0.7rem 0.85rem;
+        margin-top: 0.9rem;
+        padding: 0.75rem 0.9rem;
         background: var(--surface-low);
         border: 1px solid var(--border);
-        border-radius: 6px;
-        font-size: 0.75rem;
+        border-radius: 5px;
+        font-size: 0.76rem;
         color: var(--muted);
-        line-height: 1.5;
+        line-height: 1.52;
         display: flex;
-        gap: 0.55rem;
+        gap: 0.6rem;
         align-items: flex-start;
     }
 
     .notice-icon {
         font-family: "JetBrains Mono", monospace;
         font-weight: 700;
-        font-size: 0.75rem;
-        color: var(--primary);
+        font-size: 0.76rem;
+        color: var(--sandstone);
     }
 
     .badge-tag {
         font-family: "JetBrains Mono", monospace;
-        font-size: 0.62rem;
+        font-size: 0.61rem;
         font-weight: 600;
-        padding: 0.2rem 0.5rem;
+        padding: 0.22rem 0.52rem;
         border-radius: 4px;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.07em;
     }
 
     .badge-success {
-        background: var(--success-soft);
-        color: var(--success);
-        border: 1px solid #294636;
+        background: var(--turquoise-soft);
+        color: var(--turquoise);
+        border: 1px solid var(--turquoise-border);
     }
 
-    /* ---------------- TABS STYLING ---------------- */
+    /* ------------------------------------------------------------
+       TABS STYLING
+       ------------------------------------------------------------ */
     [data-testid="stTabs"] {
-        margin-top: 1.1rem;
+        margin-top: 1.2rem;
     }
 
     [data-testid="stTabs"] [data-baseweb="tab-list"] {
         background-color: var(--surface-low);
         border: 1px solid var(--border);
-        border-radius: 8px;
+        border-radius: 6px;
         padding: 4px;
-        gap: 6px;
+        gap: 5px;
     }
 
     [data-testid="stTabs"] [data-baseweb="tab"] {
-        border-radius: 6px !important;
+        border-radius: 5px !important;
         font-family: "Cinzel", serif !important;
         font-weight: 700 !important;
-        font-size: 0.88rem !important;
-        letter-spacing: 0.03em !important;
+        font-size: 0.87rem !important;
+        letter-spacing: 0.04em !important;
         color: var(--muted) !important;
-        padding: 0.6rem 1.4rem !important;
+        padding: 0.58rem 1.35rem !important;
         border: 1px solid transparent !important;
         background: transparent !important;
         transition: all 0.15s ease !important;
@@ -401,27 +493,29 @@ st.markdown(
     }
 
     [data-testid="stTabs"] [data-baseweb="tab"][aria-selected="true"] {
-        background: var(--primary-soft) !important;
-        border: 1px solid var(--primary) !important;
-        color: var(--primary) !important;
+        background: var(--gold-soft) !important;
+        border: 1px solid var(--sandstone) !important;
+        color: var(--sandstone) !important;
     }
 
-    /* ---------------- FORM & BUTTONS ---------------- */
+    /* ------------------------------------------------------------
+       FORM & BUTTONS
+       ------------------------------------------------------------ */
     [data-testid="stFileUploader"] {
-        margin-bottom: 0.6rem;
+        margin-bottom: 0.65rem;
     }
 
     [data-testid="stFileUploaderDropzone"] {
-        padding: 1.8rem 1.2rem !important;
+        padding: 1.9rem 1.3rem !important;
         background-color: var(--surface-low) !important;
         border: 1.5px dashed var(--border) !important;
-        border-radius: 8px !important;
+        border-radius: 6px !important;
         transition: all 0.2s ease !important;
     }
 
     [data-testid="stFileUploaderDropzone"]:hover {
-        border-color: var(--primary) !important;
-        background-color: var(--primary-soft) !important;
+        border-color: var(--sandstone) !important;
+        background-color: var(--gold-soft) !important;
     }
 
     [data-testid="stFileUploaderDropzone"] div {
@@ -436,7 +530,7 @@ st.markdown(
     [data-testid="stFileUploaderDropzone"] > div > div > div > span::after,
     [data-testid="stFileUploaderDropzone"] > div > div > div > div > small::after {
         content: "maksimal 200 MB (png, jpg, bmp, jpeg)";
-        font-size: 0.72rem;
+        font-size: 0.73rem;
         color: var(--muted) !important;
         font-family: "JetBrains Mono", monospace !important;
         visibility: visible;
@@ -449,7 +543,7 @@ st.markdown(
     }
     [data-testid="stFileUploaderDropzoneInstructions"] > div > span::after {
         content: "maksimal 200 MB (png, jpg, bmp, jpeg)";
-        font-size: 0.72rem;
+        font-size: 0.73rem;
         visibility: visible;
         display: block;
     }
@@ -458,13 +552,13 @@ st.markdown(
         background: var(--surface-high) !important;
         color: var(--text) !important;
         border: 1px solid var(--border) !important;
-        border-radius: 6px !important;
-        font-size: 0.8rem !important;
+        border-radius: 5px !important;
+        font-size: 0.81rem !important;
     }
 
     [data-testid="stFileUploaderDropzone"] button:hover {
-        border-color: var(--primary) !important;
-        color: var(--primary) !important;
+        border-color: var(--sandstone) !important;
+        color: var(--sandstone) !important;
     }
 
     /* The selected-file uploader control replaces the misleading plus icon. */
@@ -487,32 +581,32 @@ st.markdown(
     [data-testid="stWidgetLabel"] p {
         color: var(--muted) !important;
         font-family: "JetBrains Mono", monospace !important;
-        font-size: 0.72rem !important;
+        font-size: 0.71rem !important;
         text-transform: uppercase !important;
-        letter-spacing: 0.05em !important;
+        letter-spacing: 0.06em !important;
         font-weight: 600 !important;
     }
 
     .stButton > button {
-        border-radius: 6px !important;
-        min-height: 42px !important;
+        border-radius: 5px !important;
+        min-height: 41px !important;
         font-weight: 600 !important;
-        font-size: 0.88rem !important;
+        font-size: 0.87rem !important;
         transition: all 0.15s ease !important;
         font-family: "Cinzel", serif !important;
-        letter-spacing: 0.02em !important;
+        letter-spacing: 0.03em !important;
     }
 
     .stButton > button[kind="primary"] {
-        background: #c68a35 !important;
-        border: 1px solid #c68a35 !important;
-        color: #1c1917 !important;
+        background: var(--sandstone) !important;
+        border: 1px solid var(--sandstone) !important;
+        color: var(--obsidian) !important;
     }
 
     .stButton > button[kind="primary"]:hover {
-        background: #d69740 !important;
-        border-color: #d69740 !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+        background: var(--sandstone-light) !important;
+        border-color: var(--sandstone-light) !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35) !important;
     }
 
     .stButton > button[kind="secondary"] {
@@ -522,26 +616,26 @@ st.markdown(
     }
 
     .stButton > button[kind="secondary"]:hover {
-        border-color: var(--primary) !important;
-        color: var(--primary) !important;
+        border-color: var(--sandstone) !important;
+        color: var(--sandstone) !important;
     }
 
     .stDownloadButton > button {
-        background: #c68a35 !important;
-        border: 1px solid #c68a35 !important;
-        color: #1c1917 !important;
-        border-radius: 6px !important;
-        min-height: 42px !important;
+        background: var(--sandstone) !important;
+        border: 1px solid var(--sandstone) !important;
+        color: var(--obsidian) !important;
+        border-radius: 5px !important;
+        min-height: 41px !important;
         font-weight: 600 !important;
-        font-size: 0.88rem !important;
+        font-size: 0.87rem !important;
         font-family: "Cinzel", serif !important;
-        letter-spacing: 0.02em !important;
+        letter-spacing: 0.03em !important;
     }
 
     .stDownloadButton > button:hover {
-        background: #d69740 !important;
-        border-color: #d69740 !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+        background: var(--sandstone-light) !important;
+        border-color: var(--sandstone-light) !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35) !important;
     }
 
     .stTextArea textarea, .stTextInput input {
@@ -549,13 +643,13 @@ st.markdown(
         background: var(--surface) !important;
         color: var(--text) !important;
         border: 1px solid var(--border) !important;
-        border-radius: 6px !important;
-        font-size: 0.85rem !important;
+        border-radius: 5px !important;
+        font-size: 0.84rem !important;
     }
 
     .stTextArea textarea:focus, .stTextInput input:focus {
-        border-color: var(--primary) !important;
-        box-shadow: 0 0 0 1px var(--primary) !important;
+        border-color: var(--sandstone) !important;
+        box-shadow: 0 0 0 1px var(--sandstone) !important;
     }
 
     .loading-overlay {
@@ -565,94 +659,96 @@ st.markdown(
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(28, 25, 23, 0.78);
-        backdrop-filter: blur(4px);
+        background: rgba(19, 17, 14, 0.82);
+        backdrop-filter: blur(5px);
         cursor: wait;
         pointer-events: auto;
     }
 
     .loading-panel {
-        min-width: 260px;
-        padding: 1.5rem 1.8rem;
+        min-width: 265px;
+        padding: 1.55rem 1.85rem;
         text-align: center;
-        background: var(--surface);
-        border: 1px solid var(--primary);
-        border-radius: 8px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        background: var(--surface-card);
+        border: 1px solid var(--sandstone);
+        border-radius: 6px;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
     }
 
     .loading-spinner {
-        width: 34px;
-        height: 34px;
-        margin: 0 auto 0.85rem;
+        width: 35px;
+        height: 35px;
+        margin: 0 auto 0.9rem;
         border: 3px solid var(--border);
-        border-top-color: var(--primary);
+        border-top-color: var(--sandstone);
         border-radius: 50%;
-        animation: loading-spin 0.8s linear infinite;
+        animation: loading-spin 0.85s linear infinite;
     }
 
     .loading-title {
-        color: var(--primary);
+        color: var(--sandstone);
         font-family: "Cinzel", serif;
         font-weight: 700;
-        font-size: 0.95rem;
+        font-size: 0.96rem;
     }
 
     .loading-message {
-        margin-top: 0.35rem;
+        margin-top: 0.38rem;
         color: var(--muted);
-        font-size: 0.75rem;
+        font-size: 0.76rem;
     }
 
     @keyframes loading-spin {
         to { transform: rotate(360deg); }
     }
 
-    /* Metrics Grid */
+    /* ------------------------------------------------------------
+       METRICS GRID
+       ------------------------------------------------------------ */
     [data-testid="stMetric"] {
-        background: var(--surface) !important;
+        background: var(--surface-card) !important;
         border: 1px solid var(--border) !important;
-        border-radius: 6px !important;
-        padding: 0.85rem !important;
+        border-radius: 5px !important;
+        padding: 0.9rem !important;
     }
 
     [data-testid="stMetricLabel"] p {
         font-family: "JetBrains Mono", monospace !important;
-        font-size: 0.65rem !important;
+        font-size: 0.64rem !important;
         color: var(--muted) !important;
         text-transform: uppercase !important;
-        letter-spacing: 0.06em !important;
+        letter-spacing: 0.07em !important;
         font-weight: 600 !important;
     }
 
     [data-testid="stMetricValue"] div {
         font-family: "Cinzel", serif !important;
-        font-size: 1.45rem !important;
+        font-size: 1.48rem !important;
         font-weight: 700 !important;
-        color: var(--primary) !important;
+        color: var(--sandstone) !important;
     }
 
     [data-testid="stAlert"] {
         background-color: var(--surface-low) !important;
         border: 1px solid var(--border) !important;
-        border-radius: 6px !important;
+        border-radius: 5px !important;
         color: var(--text) !important;
     }
 
     .footer-wrap {
-        margin-top: 3.5rem;
-        padding-top: 1.4rem;
+        margin-top: 3.8rem;
+        padding-top: 1.5rem;
         border-top: 1px solid var(--border);
         text-align: center;
-        font-size: 0.8rem;
+        font-size: 0.81rem;
         color: var(--muted);
     }
 
     /* Decorative Stone Fret & Accents */
     .stone-divider {
         height: 1px;
-        background: linear-gradient(90deg, transparent 0%, var(--border) 20%, var(--primary) 50%, var(--border) 80%, transparent 100%);
-        margin: 1.2rem 0;
+        background: linear-gradient(90deg, transparent 0%, var(--border) 20%, var(--sandstone) 50%, var(--border) 80%, transparent 100%);
+        margin: 1.25rem 0;
         position: relative;
     }
 
@@ -743,13 +839,13 @@ st.markdown(
 
     .gauge-fill {
         height: 100%;
-        background: #c68a35;
+        background: var(--sandstone);
         border-radius: 3px;
         transition: width 0.3s ease;
     }
 
     .gauge-fill-full {
-        background: var(--error) !important;
+        background: var(--jasper-red) !important;
     }
 
     /* Math & Cipher Inspector Details */
@@ -800,13 +896,17 @@ st.markdown(
 # Topbar
 st.markdown(
     """
-    <div class="topbar">
+    <nav class="topbar" aria-label="Navigasi Utama">
         <div class="topbar-left">
-            <span class="topbar-title">Keamanan Informasi</span>
+            <span class="topbar-title">&#9889; KHNUM &bull; STEGOCIPHER</span>
             <span class="topbar-sep">/</span>
-            <span class="topbar-sub">Steganografi Citra Digital</span>
+            <span class="topbar-sub">Ancient Egyptian Cryptographic Sanctuary</span>
         </div>
-    </div>
+        <div class="topbar-badge">
+            <span class="topbar-badge-dot"></span>
+            <span>SANCTUARY SECURE &bull; 1024-BIT</span>
+        </div>
+    </nav>
     """,
     unsafe_allow_html=True,
 )
@@ -844,10 +944,12 @@ with st.sidebar:
     st.markdown(
         """
         <div class="brand-wrap">
-            <div class="brand-title">Steganografi Citra</div>
-            <div class="brand-subtitle">Enkripsi ElGamal-DH &amp; LSB-PRNG</div>
+            <div class="brand-title">
+                <span>STEGO</span><span class="brand-accent">CIPHER</span>
+            </div>
+            <div class="brand-subtitle">Egyptian Cryptographic Relic &bull; LSB-PRNG</div>
         </div>
-        <div class="sidebar-section-title">Parameter Kriptografi</div>
+        <div class="sidebar-section-title">Parameter Modulus Kuil</div>
         """,
         unsafe_allow_html=True,
     )
@@ -858,7 +960,7 @@ with st.sidebar:
     
     st.markdown(
         """
-        <div class="sidebar-section-title" style="margin-top:0.8rem;">Pasangan Kunci</div>
+        <div class="sidebar-section-title" style="margin-top:0.8rem;">Pasangan Kunci Suci</div>
         """,
         unsafe_allow_html=True,
     )
@@ -877,18 +979,18 @@ with st.sidebar:
         except ValueError:
             st.error("Nilai parameter harus berupa angka integer!")
 
-    if st.button("Generate Kunci Baru", type="secondary", use_container_width=True, disabled=st.session_state.is_processing):
+    if st.button("Bangkitkan Kunci Baru", type="secondary", use_container_width=True, disabled=st.session_state.is_processing):
         st.cache_resource.clear()
         st.session_state.elgamal = get_elgamal_instance()
         st.session_state.private_key, st.session_state.public_key = st.session_state.elgamal.generate_keypair()
-        st.success("Kunci baru berhasil dibuat!")
+        st.success("Pasangan kunci kriptografi kuil berhasil dibangkitkan ulang!")
         st.rerun()
 
     st.markdown(
         """
-        <div style="margin-top:2.5rem; padding-top:1rem; border-top:1px solid var(--border); font-size:0.72rem; color:var(--muted);">
-            <div>Ujian Tengah Semester Keamanan Informasi</div>
-            <div style="color:var(--muted-light); font-size:0.68rem; margin-top:0.2rem;">Semester 5</div>
+        <div style="margin-top:2.6rem; padding-top:1.1rem; border-top:1px solid var(--border); font-size:0.74rem; color:var(--muted);">
+            <div style="font-family:'Cinzel', Georgia, serif; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--sandstone);">Keamanan Informasi</div>
+            <div style="color:var(--muted); font-size:0.7rem; margin-top:0.25rem;">Semester 5 &bull; Ujian Tengah Semester</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1775,10 +1877,10 @@ with tab4:
                 if extraction_failed:
                     st.markdown(
                         f"""
-                        <div class="notice-box" style="border-color:var(--error); margin-bottom:0.8rem;">
-                            <span class="notice-icon" style="color:var(--error); font-size:1rem;">✕</span>
+                        <div class="notice-box" style="border-left-color:var(--jasper-red); margin-bottom:0.8rem;">
+                            <span class="notice-icon" style="color:var(--jasper-red); font-size:1rem;">✕</span>
                             <div>
-                                <strong style="color:var(--error); font-size:0.9rem;">EKSTRAKSI LSB GAGAL — Kerapuhan (Fragility) Terbukti</strong><br>
+                                <strong style="color:var(--jasper-red); font-size:0.9rem;">EKSTRAKSI LSB GAGAL — Kerapuhan (Fragility) Terbukti</strong><br>
                                 <span style="font-size:0.76rem; color:var(--muted); margin-top:0.3rem; display:block;">Kompresi JPEG (Q={kualitas_jpeg}) merusak bit-bit LSB — header panjang pesan hancur sehingga proses ekstraksi tidak dapat dimulai.</span>
                                 <span style="font-family:'JetBrains Mono', monospace; font-size:0.7rem; color:var(--muted-light); margin-top:0.4rem; display:block;">Error: {error_detail}</span>
                             </div>
@@ -1789,10 +1891,10 @@ with tab4:
                 elif decryption_failed:
                     st.markdown(
                         f"""
-                        <div class="notice-box" style="border-color:var(--error); margin-bottom:0.8rem;">
-                            <span class="notice-icon" style="color:var(--error); font-size:1rem;">✕</span>
+                        <div class="notice-box" style="border-left-color:var(--jasper-red); margin-bottom:0.8rem;">
+                            <span class="notice-icon" style="color:var(--jasper-red); font-size:1rem;">✕</span>
                             <div>
-                                <strong style="color:var(--error); font-size:0.9rem;">DEKRIPSI ELGAMAL GAGAL — Payload Rusak</strong><br>
+                                <strong style="color:var(--jasper-red); font-size:0.9rem;">DEKRIPSI ELGAMAL GAGAL — Payload Rusak</strong><br>
                                 <span style="font-size:0.76rem; color:var(--muted); margin-top:0.3rem; display:block;">Bit LSB berhasil terbaca sebagian, namun data yang terekstrak tidak valid untuk didekripsi menggunakan ElGamal — isi payload telah korup akibat distorsi JPEG (Q={kualitas_jpeg}).</span>
                                 <span style="font-family:'JetBrains Mono', monospace; font-size:0.7rem; color:var(--muted-light); margin-top:0.4rem; display:block;">Error: {error_detail}</span>
                             </div>
@@ -1803,10 +1905,10 @@ with tab4:
                 else:
                     st.markdown(
                         f"""
-                        <div class="notice-box" style="border-color:var(--success); margin-bottom:0.8rem;">
-                            <span class="notice-icon" style="color:var(--success);">✓</span>
+                        <div class="notice-box" style="border-left-color:var(--turquoise-hover); margin-bottom:0.8rem;">
+                            <span class="notice-icon" style="color:var(--turquoise-hover);">✓</span>
                             <div>
-                                <strong style="color:var(--success);">DEKRIPSI BERHASIL pada Quality Factor {kualitas_jpeg}</strong><br>
+                                <strong style="color:var(--turquoise-hover);">DEKRIPSI BERHASIL pada Quality Factor {kualitas_jpeg}</strong><br>
                                 <span style="font-size:0.76rem; color:var(--muted);">Pesan berhasil diekstrak dan didekripsi. Coba turunkan quality factor untuk melihat efek kerapuhan.</span>
                             </div>
                         </div>
@@ -1834,13 +1936,17 @@ with tab4:
 
                 st.markdown("</div>", unsafe_allow_html=True)
 
-# Footer
+# Semantic Footer
 st.markdown(
     """
-    <div class="footer-wrap">
-        <p style="margin:0 0 0.25rem 0; font-weight:600; color:var(--text);">Steganografi dengan Enkripsi ElGamal berbasis Diffie-Hellman</p>
-        <p style="margin:0; font-size:0.74rem; color:var(--muted);">Ujian Tengah Semester Keamanan Informasi</p>
-    </div>
+    <footer class="footer-wrap" role="contentinfo">
+        <p style="margin:0 0 0.35rem 0; font-weight:700; color:var(--sandstone); font-family:'Cinzel', Georgia, serif; font-size:0.92rem; letter-spacing:0.06em;">
+            KHNUM &bull; STEGOCIPHER &bull; SANCTUARY OF ANCIENT CRYPTOGRAPHY
+        </p>
+        <p style="margin:0; font-size:0.76rem; color:var(--muted); font-family:'Inter', sans-serif;">
+            Keamanan Informasi &bull; Asymmetric ElGamal Cryptography &bull; 1024-bit Diffie-Hellman &bull; Reed-Solomon RS(255,223) &bull; LSB-PRNG Steganalysis
+        </p>
+    </footer>
     """,
     unsafe_allow_html=True,
 )
