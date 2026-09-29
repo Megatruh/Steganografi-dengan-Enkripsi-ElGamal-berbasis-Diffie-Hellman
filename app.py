@@ -887,8 +887,8 @@ with st.sidebar:
     st.markdown(
         """
         <div style="margin-top:2.5rem; padding-top:1rem; border-top:1px solid var(--border); font-size:0.72rem; color:var(--muted);">
-            <div>Tugas Keamanan Informasi</div>
-            <div style="color:var(--muted-light); font-size:0.68rem; margin-top:0.2rem;">Semester 5 &bull; UTS</div>
+            <div>Ujian Tengah Semester Keamanan Informasi</div>
+            <div style="color:var(--muted-light); font-size:0.68rem; margin-top:0.2rem;">Semester 5</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1839,7 +1839,7 @@ st.markdown(
     """
     <div class="footer-wrap">
         <p style="margin:0 0 0.25rem 0; font-weight:600; color:var(--text);">Steganografi dengan Enkripsi ElGamal berbasis Diffie-Hellman</p>
-        <p style="margin:0; font-size:0.74rem; color:var(--muted);">Tugas Mata Kuliah Keamanan Informasi</p>
+        <p style="margin:0; font-size:0.74rem; color:var(--muted);">Ujian Tengah Semester Keamanan Informasi</p>
     </div>
     """,
     unsafe_allow_html=True,

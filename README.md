@@ -1,8 +1,13 @@
-﻿# Steganografi dengan Enkripsi ElGamal berbasis Diffie-Hellman
+# Steganografi dengan Enkripsi ElGamal berbasis Diffie-Hellman
 
 Aplikasi web berbasis **Streamlit** untuk pengamanan pesan rahasia pada citra digital menggunakan enkripsi asimetris **ElGamal berbasis Diffie-Hellman**, proteksi integritas **Reed-Solomon Error Correction**, serta penyisipan bit **LSB teracak berbasis PRNG**.
 
-> **Tugas Mata Kuliah Keamanan Informasi** — Semester 5
+> **Ujian Tengah Semester Keamanan Informasi** — Semester 5
+
+**Pembuat:**
+- Muhammad Naufal Syifau Rahman (247006111059)
+- Farhan Esha Putra Kusuma Atmaja (247006111066)
+- Hafidz Januar Faturahman (247006111077)
 
 ---
 
