@@ -771,7 +771,7 @@ with st.sidebar:
     )
 
 # Main Navigation Tabs
-tab1, tab2, tab3 = st.tabs(["Enkripsi", "Dekripsi", "Analisis"])
+tab1, tab2, tab3, tab4 = st.tabs(["Enkripsi", "Dekripsi", "Analisis", "Uji JPEG"])
 
 # ------------------------------------------------------------
 # TAB 1: ENKRIPSI
@@ -1450,6 +1450,172 @@ with tab3:
             """,
             unsafe_allow_html=True,
         )
+
+# ------------------------------------------------------------
+# TAB 4: UJI KETAHANAN JPEG
+# ------------------------------------------------------------
+with tab4:
+    st.markdown(
+        """
+        <div class="stego-card">
+            <div class="card-title">Uji Ketahanan Kompresi JPEG & Solusi</div>
+            <div class="card-subtitle">Menguji konsep kerusakan LSB spasial akibat kompresi lossy JPEG dan mendemonstrasikan metode "Solve" dengan Reed-Solomon Super ECC. (Untuk metode murni Frekuensi DCT lihat file <code>dct_stegano.py</code>)</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    uji_col1, uji_col2 = st.columns(2, gap="large")
+    
+    with uji_col1:
+        st.markdown("<div style='font-family:\"JetBrains Mono\", monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.4rem;'>Gambar Uji</div>", unsafe_allow_html=True)
+        uji_file = st.file_uploader("Upload Gambar", type=['png', 'jpg', 'jpeg', 'bmp'], key="uji_file_uploader")
+        uji_cover_array = None
+        if uji_file:
+            uji_img = Image.open(uji_file)
+            uji_cover_array = np.array(uji_img)
+            if len(uji_cover_array.shape) == 2:
+                uji_cover_array = np.stack([uji_cover_array] * 3, axis=2)
+            elif uji_cover_array.shape[2] == 4:
+                uji_cover_array = uji_cover_array[:, :, :3]
+            st.image(uji_img, caption="Gambar Original", use_container_width=True)
+
+    with uji_col2:
+        st.markdown("<div style='font-family:\"JetBrains Mono\", monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.4rem;'>Pengaturan Uji Coba</div>", unsafe_allow_html=True)
+        pesan_uji = st.text_input("Pesan Rahasia (Plaintext)", value="Ini pesan rahasia!", key="pesan_uji_input")
+        kualitas_jpeg = st.slider("Kualitas Kompresi JPEG (%)", min_value=70, max_value=100, value=98, step=1, help="Kualitas > 95 memungkinkan ECC untuk memperbaiki error.")
+        
+        st.markdown("### 1. Uji Pure LSB (Akan Rusak)")
+        if st.button("Uji LSB Biasa", use_container_width=True, key="btn_uji_pure"):
+            if uji_cover_array is None:
+                st.error("Upload gambar dulu!")
+            else:
+                pesan_bytes = pesan_uji.encode('utf-8')
+                stego_rentan = LSBSteganography(nsym=0)
+                
+                with st.status("Menjalankan Simulasi LSB Klasik...", expanded=True):
+                    st.write("Menyisipkan pesan tanpa pelindung ECC...")
+                    stego_rentan_array = stego_rentan.embed(uji_cover_array, pesan_bytes)
+                    
+                    st.write(f"Mengonversi ke JPEG (Quality {kualitas_jpeg}%)...")
+                    jpeg_array, _ = simulate_jpeg_compression(stego_rentan_array, quality=kualitas_jpeg)
+                    
+                    st.write("Mencoba membaca ulang LSB dari citra JPEG...")
+                    
+                    try:
+                        extracted = stego_rentan.extract(jpeg_array)
+                        
+                        st.markdown("#### Hasil Ekstraksi:")
+                        if extracted == pesan_bytes:
+                            st.success("Ajaib! Pesan terekstrak utuh.")
+                            st.code(extracted.decode('utf-8', errors='replace'), language="text")
+                        else:
+                            st.error("Pesan berhasil dibaca, tapi isinya hancur/acak!")
+                            st.info("Pesan Asli:")
+                            st.code(pesan_uji, language="text")
+                            st.warning("Pesan yang Terekstrak:")
+                            st.code(extracted.decode('utf-8', errors='replace'), language="text")
+                            
+                    except Exception as e:
+                        st.error("Gagal Total! JPEG merusak informasi panjang pesan (Header) sehingga tidak bisa dibaca sama sekali.")
+                        st.info("Pesan Asli:")
+                        st.code(pesan_uji, language="text")
+                        st.warning("Pesan yang Terekstrak:")
+                        st.code(f"[GAGAL BACA] Pesan hancur di tengah jalan.\nDetail Error: {str(e)}", language="text")
+
+        st.markdown("### 2. Uji Solusi: LSB + Super ECC")
+        st.caption("Menyisipkan LSB dengan paritas Reed-Solomon sangat tinggi (nsym=80). Mengorbankan ruang demi ketahanan dari distorsi JPEG.")
+        
+        if st.button("Uji Solusi Super ECC", use_container_width=True, type="primary", key="btn_uji_ecc"):
+            if uji_cover_array is None:
+                st.error("Upload gambar dulu!")
+            else:
+                pesan_bytes = pesan_uji.encode('utf-8')
+                stego_kuat = LSBSteganography(nsym=80)
+                
+                with st.status("Menjalankan Simulasi Solusi ECC...", expanded=True):
+                    st.write("Menyiapkan algoritma Super Robust (Repetition + ECC)...")
+                    import reedsolo
+                    import random
+                    
+                    nsym = 40
+                    rs = reedsolo.RSCodec(nsym)
+                    pesan_bytes = pesan_uji.encode('utf-8')
+                    
+                    # 1. Encode dengan ECC
+                    encoded_msg = rs.encode(pesan_bytes)
+                    encoded_len = len(encoded_msg)
+                    
+                    # 2. Ubah ke bit
+                    bits = []
+                    for b in encoded_msg:
+                        for i in range(8):
+                            bits.append((b >> i) & 1)
+                            
+                    # 3. Repetition Code (Kopi bit sebanyak mungkin ke seluruh gambar)
+                    stego_kuat_array = uji_cover_array.copy()
+                    flat_stego = stego_kuat_array.flatten()
+                    total_capacity = len(flat_stego)
+                    
+                    actual_copies = min(200, total_capacity // len(bits))
+                    repeated_bits = bits * actual_copies
+                    
+                    # Acak posisi
+                    indices = list(range(total_capacity))
+                    random.Random(12345).shuffle(indices)
+                    
+                    # Embed
+                    for i, bit in enumerate(repeated_bits):
+                        idx = indices[i]
+                        flat_stego[idx] = (flat_stego[idx] & ~1) | bit
+                        
+                    stego_kuat_array = flat_stego.reshape(uji_cover_array.shape)
+                    
+                    st.write(f"Mengonversi ke JPEG (Quality {kualitas_jpeg}%)...")
+                    jpeg_array, _ = simulate_jpeg_compression(stego_kuat_array, quality=kualitas_jpeg)
+                    
+                    st.write("Mengekstrak dan melakukan Majority Vote + ECC Correction...")
+                    
+                    try:
+                        # Extract
+                        flat_jpeg = jpeg_array.flatten()
+                        bits_len = encoded_len * 8
+                        total_bits = actual_copies * bits_len
+                        
+                        extracted_repeated = []
+                        for i in range(total_bits):
+                            idx = indices[i]
+                            extracted_repeated.append(flat_jpeg[idx] & 1)
+                            
+                        # Majority Vote
+                        extracted_bits = []
+                        for i in range(bits_len):
+                            votes = [extracted_repeated[j * bits_len + i] for j in range(actual_copies)]
+                            ones = sum(votes)
+                            zeros = actual_copies - ones
+                            extracted_bits.append(1 if ones > zeros else 0)
+                            
+                        # Convert to bytes
+                        extracted_encoded = bytearray()
+                        for i in range(0, bits_len, 8):
+                            b = 0
+                            for j in range(8):
+                                b |= (extracted_bits[i + j] << j)
+                            extracted_encoded.append(b)
+                            
+                        # RS Decode
+                        decoded = rs.decode(bytes(extracted_encoded))
+                        extracted_bytes = bytes(decoded[0] if isinstance(decoded, tuple) else decoded)
+                        
+                        st.markdown("#### Hasil Ekstraksi:")
+                        st.success(f"SUPER BERHASIL! Kombinasi Repetition ({actual_copies}x) dan ECC ({nsym} byte) selamatkan LSB dari kompresi JPEG!")
+                        st.info("Pesan Asli:")
+                        st.code(pesan_uji, language="text")
+                        st.success("Pesan yang Terekstrak (Berhasil Diselamatkan):")
+                        st.code(extracted_bytes.decode('utf-8', errors='replace'), language="text")
+                    except Exception as e:
+                        st.error(f"Gagal! Kompresi di angka {kualitas_jpeg}% terlalu ekstrim menghancurkan bit gambar. (Detail: {str(e)})")
+                        st.info("Saran: Kualitas JPEG <= 80% akan menghancurkan gambar terlalu parah untuk LSB.")
 
 # Footer
 st.markdown(
