@@ -733,25 +733,30 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
+        
+    p_value = st.text_input("Prime Modulus (p)", value=str(st.session_state.elgamal.p), key="param_p", help="Bisa diedit dan dicopy")
+    g_value = st.text_input("Generator (g)", value=str(st.session_state.elgamal.g), key="param_g", help="Bisa diedit dan dicopy")
+    
     st.markdown(
-        f"""
-        <div class="param-box">
-            <div class="param-label">Prime Modulus (p)</div>
-            <div class="param-val">{st.session_state.elgamal.p}</div>
-            <div class="param-label" style="margin-top:0.45rem;">Generator (g)</div>
-            <div class="param-val">{st.session_state.elgamal.g}</div>
-        </div>
-
+        """
         <div class="sidebar-section-title" style="margin-top:0.8rem;">Pasangan Kunci</div>
-        <div class="param-box">
-            <div class="param-label">Private Key (x)</div>
-            <div class="param-val">{st.session_state.private_key}</div>
-            <div class="param-label" style="margin-top:0.45rem;">Public Key (y)</div>
-            <div class="param-val">{st.session_state.public_key}</div>
-        </div>
         """,
         unsafe_allow_html=True,
     )
+    
+    private_key_value = st.text_input("Private Key (x)", value=str(st.session_state.private_key), key="param_private", help="Bisa diedit dan dicopy")
+    public_key_value = st.text_input("Public Key (y)", value=str(st.session_state.public_key), key="param_public", help="Bisa diedit dan dicopy")
+    
+    # Update session state if values are changed
+    if st.button("Update Parameter", type="secondary", use_container_width=True, key="update_params"):
+        try:
+            st.session_state.elgamal.p = int(p_value)
+            st.session_state.elgamal.g = int(g_value)
+            st.session_state.private_key = int(private_key_value)
+            st.session_state.public_key = int(public_key_value)
+            st.success("Parameter berhasil diperbarui!")
+        except ValueError:
+            st.error("Nilai parameter harus berupa angka integer!")
 
     if st.button("Generate Kunci Baru", type="secondary", use_container_width=True):
         st.cache_resource.clear()
@@ -1215,9 +1220,55 @@ with tab3:
         unsafe_allow_html=True,
     )
 
-    if 'stego_array' in st.session_state and 'cover_array' in st.session_state:
+    # File uploaders for independent analysis
+    col_upload1, col_upload2 = st.columns(2, gap="large")
+    
+    with col_upload1:
+        st.markdown(
+            """
+            <div style="font-family:'JetBrains Mono', monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.4rem;">
+                Citra Cover (Asli)
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        analysis_cover_file = st.file_uploader("Upload Citra Cover", type=['png', 'jpg', 'jpeg', 'bmp'], key="analysis_cover_uploader")
+    
+    with col_upload2:
+        st.markdown(
+            """
+            <div style="font-family:'JetBrains Mono', monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.4rem;">
+                Citra Stego (Hasil Penyisipan)
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        analysis_stego_file = st.file_uploader("Upload Citra Stego", type=['png', 'jpg', 'jpeg', 'bmp'], key="analysis_stego_uploader")
+    
+    # Use uploaded files or session state from encryption
+    if analysis_cover_file and analysis_stego_file:
+        cover_image = Image.open(analysis_cover_file)
+        cover_arr = np.array(cover_image)
+        stego_image = Image.open(analysis_stego_file)
+        stego_arr = np.array(stego_image)
+        
+        if len(cover_arr.shape) == 2:
+            cover_arr = np.stack([cover_arr] * 3, axis=2)
+        elif cover_arr.shape[2] == 4:
+            cover_arr = cover_arr[:, :, :3]
+        
+        if len(stego_arr.shape) == 2:
+            stego_arr = np.stack([stego_arr] * 3, axis=2)
+        elif stego_arr.shape[2] == 4:
+            stego_arr = stego_arr[:, :, :3]
+    elif 'stego_array' in st.session_state and 'cover_array' in st.session_state:
         stego_arr = st.session_state.stego_array
         cover_arr = st.session_state.cover_array
+    else:
+        stego_arr = None
+        cover_arr = None
+
+    if stego_arr is not None and cover_arr is not None:
         
         col_img1, col_img2 = st.columns(2, gap="large")
         with col_img1:
@@ -1355,7 +1406,7 @@ with tab3:
             """
             <div class="notice-box">
                 <span class="notice-icon">i</span>
-                <span>Lakukan enkripsi dan penyisipan pada tab <strong>Enkripsi</strong> terlebih dahulu untuk melihat perbandingan citra dan data statistik.</span>
+                <span>Upload kedua citra (cover dan stego) untuk analisis, atau lakukan enkripsi dan penyisipan pada tab <strong>Enkripsi</strong> terlebih dahulu untuk menggunakan data dari sesi aktif.</span>
             </div>
             """,
             unsafe_allow_html=True,
@@ -1396,25 +1447,47 @@ with tab4:
         unsafe_allow_html=True,
     )
 
-    # Check whether encryption has been done in this session
-    if 'stego_array' not in st.session_state or st.session_state.stego_array is None:
+    # File uploader for independent JPEG test
+    st.markdown(
+        """
+        <div style="font-family:'JetBrains Mono', monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.4rem;">
+            Upload Citra Stego untuk Uji JPEG
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    jpeg_test_file = st.file_uploader("Upload Citra Stego", type=['png', 'jpg', 'jpeg', 'bmp'], key="jpeg_test_uploader")
+    
+    # Use uploaded file or session state from encryption
+    if jpeg_test_file:
+        jpeg_test_image = Image.open(jpeg_test_file)
+        stego_for_test = np.array(jpeg_test_image)
+        
+        if len(stego_for_test.shape) == 2:
+            stego_for_test = np.stack([stego_for_test] * 3, axis=2)
+        elif stego_for_test.shape[2] == 4:
+            stego_for_test = stego_for_test[:, :, :3]
+    elif 'stego_array' in st.session_state and st.session_state.stego_array is not None:
+        stego_for_test = st.session_state.stego_array
+    else:
+        stego_for_test = None
+
+    if stego_for_test is None:
         st.markdown(
             """
             <div class="notice-box" style="margin-top:1rem;">
                 <span class="notice-icon">i</span>
-                <span>Lakukan <strong>Enkripsi & Penyisipan</strong> terlebih dahulu pada tab <strong>Enkripsi</strong> untuk menggunakan fitur ini. Citra stego dari sesi aktif akan digunakan sebagai input pengujian.</span>
+                <span>Upload citra stego untuk uji JPEG, atau lakukan <strong>Enkripsi & Penyisipan</strong> terlebih dahulu pada tab <strong>Enkripsi</strong> untuk menggunakan data dari sesi aktif.</span>
             </div>
             """,
             unsafe_allow_html=True,
         )
     else:
-        stego_for_test = st.session_state.stego_array
-
         # Parameter panel
         uji_col1, uji_col2 = st.columns(2, gap="large")
 
         with uji_col1:
-            st.markdown("<div style='font-family:\"JetBrains Mono\", monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.4rem;'>Citra Stego (Sesi Enkripsi Aktif)</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-family:\"JetBrains Mono\", monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.4rem;'>Citra Stego untuk Uji</div>", unsafe_allow_html=True)
             st.image(Image.fromarray(stego_for_test), caption="Citra Stego yang akan dikompres", use_container_width=True)
 
         with uji_col2:
@@ -1599,19 +1672,6 @@ with tab4:
                         st.code(decrypted_text, language="text")
 
                 st.markdown("</div>", unsafe_allow_html=True)
-
-# Footer
-st.markdown(
-    """
-    <div class="footer-wrap">
-        <p style="margin:0 0 0.25rem 0; font-weight:600; color:var(--text);">Steganografi dengan Enkripsi ElGamal berbasis Diffie-Hellman</p>
-        <p style="margin:0; font-size:0.74rem; color:var(--muted);">Tugas Mata Kuliah Keamanan Informasi</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-
 
 # Footer
 st.markdown(
