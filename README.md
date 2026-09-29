@@ -5,6 +5,7 @@ Aplikasi web berbasis **Streamlit** untuk pengamanan pesan rahasia pada citra di
 > **Ujian Tengah Semester Keamanan Informasi** — Semester 5
 
 **Pembuat:**
+
 - Muhammad Naufal Syifau Rahman (247006111059)
 - Farhan Esha Putra Kusuma Atmaja (247006111066)
 - Hafidz Januar Faturahman (247006111077)
@@ -14,23 +15,27 @@ Aplikasi web berbasis **Streamlit** untuk pengamanan pesan rahasia pada citra di
 ## Fitur Utama
 
 ### 🔐 Enkripsi ElGamal berbasis Diffie-Hellman
+
 - Pembangkitan **safe prime** (bilangan prima aman) sebagai modulus kriptografi
-- Generate **key pair** (private key *x* dan public key *y*) secara otomatis
-- Enkripsi ElGamal menghasilkan pasangan ciphertext *(c₁, c₂)* per byte
+- Generate **key pair** (private key _x_ dan public key _y_) secara otomatis
+- Enkripsi ElGamal menghasilkan pasangan ciphertext _(c₁, c₂)_ per byte
 - Dekripsi menggunakan **private key** dan **modular exponentiation**
 
 ### 🛡️ Reed-Solomon Error Correction Code (ECC)
+
 - Proteksi integritas data menggunakan skema **RS(255, 235)** dengan 20 parity symbols
 - Auto-detection `nsym` untuk backward compatibility dengan stego image lama
 - Error handling spesifik untuk kegagalan Reed-Solomon decoding
 
 ### 🖼️ Steganografi LSB dengan PRNG
+
 - Penyisipan bit ke **Least Significant Bit (LSB)** piksel citra
 - Posisi piksel **diacak** menggunakan PRNG (Pseudo-Random Number Generator) berbasis seed
 - **Stego key** berfungsi sebagai seed PRNG; string non-numerik di-hash dengan SHA-256
 - Kapasitas dihitung otomatis berdasarkan dimensi citra
 
 ### 📊 Analisis Citra & Steganalisis (Tab Analisis)
+
 - Perbandingan visual Cover vs. Stego image
 - **Metrik statistik**: MSE, PSNR, MAE, Korelasi
 - **Perbandingan & perbedaan histogram** (frekuensi per kanal warna)
@@ -39,6 +44,7 @@ Aplikasi web berbasis **Streamlit** untuk pengamanan pesan rahasia pada citra di
 - **Steganalisis Chi-Square** (Westfeld & Pfitzmann Attack) — analisis probabilitas deteksi keberadaan pesan
 
 ### 🧪 Uji Kerapuhan JPEG (Tab Uji JPEG)
+
 - Pengujian sifat **kerapuhan (fragility)** metode LSB spasial terhadap kompresi lossy JPEG
 - Kompresi menggunakan berbagai **Quality Factor** (30–95)
 - Menampilkan: citra stego vs. citra JPEG, metrik distorsi (MSE/PSNR/MAE), dan hasil ekstraksi
@@ -57,7 +63,23 @@ Aplikasi web berbasis **Streamlit** untuk pengamanan pesan rahasia pada citra di
 ├── requirements.txt    # Dependencies Python
 ├── clean_restart.sh    # Script bash untuk clean restart aplikasi
 ├── .gitignore          # Konfigurasi Git ignore
-└── README.md           # Dokumentasi ini
+├── README.md           # Dokumentasi ini
+├── tests/              # Suite pengujian otomatis
+│   ├── test_1_full_encryption.py
+│   ├── test_2_decryption.py
+│   ├── test_3_capacity_limit.py
+│   ├── test_4_wrong_stego_key.py
+│   ├── test_5_image_analysis.py
+│   ├── test_6_jpeg_compression.py
+│   ├── run_all_tests.py
+│   └── README.md
+├── images/             # Gambar contoh penggunaan untuk dokumentasi
+│   ├── contoh-penggunaan-enkripsi.png
+│   ├── contoh-penggunaan-dekripsi.png
+│   ├── contoh-penggunaan-analisis.png
+│   └── contoh-penggunaan-ujiJPEG.png
+├── dummy_steego_parameter.txt  # Parameter stego untuk testing
+└── paragraf_dummy.txt  # Teks dummy 100 paragraf untuk testing kapasitas
 ```
 
 ---
@@ -65,12 +87,14 @@ Aplikasi web berbasis **Streamlit** untuk pengamanan pesan rahasia pada citra di
 ## Instalasi
 
 **1. Clone repositori:**
+
 ```bash
 git clone https://github.com/Megatruh/Steganografi-dengan-Enkripsi-ElGamal-berbasis-Diffie-Hellman.git
 cd Steganografi-dengan-Enkripsi-ElGamal-berbasis-Diffie-Hellman
 ```
 
 **2. Install dependencies:**
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -85,16 +109,68 @@ Aplikasi berjalan di `http://localhost:8501`
 
 ---
 
+## Testing Suite
+
+Proyek ini dilengkapi dengan suite pengujian otomatis untuk memverifikasi fungsionalitas semua fitur.
+
+### Menjalankan Semua Test
+
+```bash
+python tests/run_all_tests.py
+```
+
+### Menjalankan Test Individual
+
+```bash
+# Test 1: Full Encryption
+python tests/test_1_full_encryption.py
+
+# Test 2: Decryption
+python tests/test_2_decryption.py
+
+# Test 3: Capacity Limit
+python tests/test_3_capacity_limit.py
+
+# Test 4: Wrong Stego Key
+python tests/test_4_wrong_stego_key.py
+
+# Test 5: Image Analysis
+python tests/test_5_image_analysis.py
+
+# Test 6: JPEG Compression
+python tests/test_6_jpeg_compression.py
+```
+
+### Deskripsi Test
+
+1. **test_1_full_encryption.py**: Menguji enkripsi penuh dengan parameter dari `dummy_steego_parameter.txt`, foto `Jonathan_Pollard.png`, stego key `30092026`, dan pesan "uji enkripsi"
+
+2. **test_2_decryption.py**: Menguji dekripsi dari hasil test 1 untuk memverifikasi pesan dapat diekstrak dengan benar
+
+3. **test_3_capacity_limit.py**: Menguji bahwa enkripsi gagal jika pesan melebihi kapasitas gambar (menggunakan `paragraf_dummy.txt`)
+
+4. **test_4_wrong_stego_key.py**: Menguji bahwa dekripsi gagal jika stego key yang digunakan berbeda
+
+5. **test_5_image_analysis.py**: Menguji semua fitur analisis gambar (histogram, heatmap, metrik statistik, chi-square, LSB plane)
+
+6. **test_6_jpeg_compression.py**: Menguji efek kompresi JPEG pada steganography dengan berbagai quality level
+
+Untuk dokumentasi lengkap testing, lihat `tests/README.md`
+
+---
+
 ## Cara Penggunaan
 
 ### Tab 1 — Enkripsi & Penyisipan
+
+![Contoh Enkripsi](images/contoh-penggunaan-enkripsi.png)
 
 1. Upload **gambar cover** (PNG/JPG/BMP)
 2. Masukkan **pesan rahasia** (plaintext)
 3. Masukkan **stego key** (seed PRNG, default: `12345`)
 4. Klik **"Enkrip & Sembunyikan Pesan"**
 5. Aplikasi akan:
-   - Mengenkripsi pesan dengan **ElGamal** → *(c₁, c₂)*
+   - Mengenkripsi pesan dengan **ElGamal** → _(c₁, c₂)_
    - Melindungi payload dengan **Reed-Solomon ECC**
    - Menyisipkan bit ke piksel acak menggunakan **LSB-PRNG**
    - Menampilkan gambar stego + nilai **PSNR**
@@ -104,6 +180,8 @@ Aplikasi berjalan di `http://localhost:8501`
 
 ### Tab 2 — Ekstraksi & Dekripsi
 
+![Contoh Dekripsi](images/contoh-penggunaan-dekripsi.png)
+
 1. Upload **gambar stego** (hasil dari Tab 1)
 2. Masukkan **stego key yang sama**
 3. Klik **"Ekstrak & Dekripsi Pesan"**
@@ -111,7 +189,10 @@ Aplikasi berjalan di `http://localhost:8501`
 
 ### Tab 3 — Analisis
 
+![Contoh Analisis](images/contoh-penggunaan-analisis.png)
+
 Tersedia setelah melakukan enkripsi di Tab 1. Menampilkan:
+
 - Perbandingan visual cover vs. stego
 - Metrik kualitas (MSE, PSNR, MAE, Korelasi)
 - Histogram perbandingan dan selisih frekuensi
@@ -120,10 +201,149 @@ Tersedia setelah melakukan enkripsi di Tab 1. Menampilkan:
 
 ### Tab 4 — Uji Kerapuhan JPEG
 
+![Contoh Uji JPEG](images/contoh-penggunaan-ujiJPEG.png)
+
 1. Upload gambar cover
 2. Masukkan pesan uji dan pilih **quality factor** JPEG
 3. Klik **"Jalankan Uji Kerapuhan JPEG"**
 4. Lihat bagaimana kompresi JPEG merusak bit LSB dan mencegah ekstraksi pesan
+
+---
+
+## Contoh Penggunaan Interaktif
+
+Berikut adalah contoh langkah-langkah penggunaan aplikasi StegoCipher:
+
+### Langkah 1: Enkripsi Pesan
+
+![Contoh Enkripsi](images/contoh-penggunaan-enkripsi.png)
+
+**Langkah-langkah:**
+
+1. **Buka aplikasi** dan navigasi ke tab **"Enkripsi & Penyisipan"**
+2. **Upload gambar cover** - Pilih gambar yang akan digunakan sebagai wadah penyimpanan pesan (contoh: foto portrait)
+3. **Masukkan pesan rahasia** - Ketik pesan yang ingin disembunyikan (contoh: "Ini adalah pesan rahasia")
+4. **Set stego key** - Masukkan nilai seed untuk PRNG (contoh: `30092026`)
+   - ⚠️ **Penting**: Ingat stego key ini! Tanpa key yang sama, pesan tidak dapat diekstrak
+5. **Klik tombol "Enkrip & Sembunyikan Pesan"**
+6. **Hasil**:
+   - Pesan dienkripsi dengan ElGamal → ciphertext _(c₁, c₂)_
+   - Reed-Solomon ECC menambahkan 20 parity bytes untuk proteksi error
+   - Bit LSB dari piksel diacak menggunakan PRNG berbasis stego key
+   - Pesan disisipkan ke posisi piksel acak
+   - Aplikasi menampilkan gambar stego dan nilai PSNR (Peak Signal-to-Noise Ratio)
+7. **Download gambar stego** dalam format PNG
+
+**Catatan:**
+
+- PSNR > 50 dB menunjukkan kualitas gambar sangat baik
+- Disarankan menggunakan PNG (lossless) untuk mempertahankan bit LSB
+
+---
+
+### Langkah 2: Dekripsi Pesan
+
+![Contoh Dekripsi](images/contoh-penggunaan-dekripsi.png)
+
+**Langkah-langkah:**
+
+1. **Navigasi ke tab "Ekstraksi & Dekripsi"**
+2. **Upload gambar stego** - Pilih gambar yang telah diunduh dari langkah enkripsi
+3. **Masukkan stego key yang sama** - Gunakan key yang sama saat enkripsi (`30092026`)
+4. **Klik tombol "Ekstrak & Dekripsi Pesan"**
+5. **Hasil**:
+   - Aplikasi mengekstrak bit LSB dari posisi piksel acak (menggunakan seed yang sama)
+   - Reed-Solomon ECC melakukan koreksi error pada data yang diekstrak
+   - Ciphertext didekripsi dengan ElGamal menggunakan private key
+   - Pesan asli ditampilkan dalam bentuk plaintext
+
+**Catatan:**
+
+- Jika stego key salah, ekstraksi akan gagal atau menghasilkan data yang tidak valid
+- Reed-Solomon ECC dapat menoleransi beberapa error yang mungkin terjadi
+
+---
+
+### Langkah 3: Analisis Citra
+
+![Contoh Analisis](images/contoh-penggunaan-analisis.png)
+
+**Langkah-langkah:**
+
+1. **Navigasi ke tab "Analisis Citra & Keamanan"**
+2. Tab ini akan menampilkan berbagai analisis terhadap gambar cover dan stego:
+
+**a. Perbandingan Visual**
+
+- Gambar cover dan stego ditampilkan berdampingan
+- Memungkinkan visual inspection perbedaan (biasanya tidak terlihat oleh mata)
+
+**b. Metrik Statistik**
+
+- **MSE (Mean Squared Error)**: Rata-rata kuadrat error antara cover dan stego
+- **PSNR (Peak Signal-to-Noise Ratio)**: Rasio sinyal terhadap noise (dB)
+- **MAE (Mean Absolute Error)**: Rata-rata error absolut
+- **Korelasi**: Koefisien korelasi antara cover dan stego
+
+**c. Histogram Comparison**
+
+- Histogram frekuensi piksel untuk setiap kanal warna (R, G, B)
+- Overlay histogram cover dan stego untuk melihat perbedaan distribusi
+
+**d. Histogram Difference**
+
+- Grafik selisih histogram (stego - cover)
+- Menunjukkan kanal mana yang paling terpengaruh
+
+**e. Difference Heatmap**
+
+- Peta spasial piksel yang dimodifikasi
+- Amplifikasi 50x untuk membuat perubahan LSB terlihat
+- Warna kuning/emas menunjukkan piksel yang dimodifikasi
+
+**f. Enhanced LSB Plane**
+
+- Visualisasi bit LSB dari gambar stego
+- Menunjukkan pola acak dari PRNG (tidak berpola teratur)
+
+**g. Steganalisis Chi-Square (Westfeld Attack)**
+
+- Analisis statistik untuk mendeteksi keberadaan pesan tersembunyi
+- Kurva probabilitas penyebaran pesan
+- Jika probabilitas > 0.5, indikasi terdeteksi modifikasi LSB
+
+---
+
+### Langkah 4: Uji Kerapuhan JPEG
+
+![Contoh Uji JPEG](images/contoh-penggunaan-ujiJPEG.png)
+
+**Langkah-langkah:**
+
+1. **Navigasi ke tab "Uji JPEG"**
+2. **Upload gambar cover** - Pilih gambar untuk pengujian
+3. **Masukkan pesan uji** - Ketik pesan singkat untuk pengujian
+4. **Pilih Quality Factor JPEG** - Pilih kualitas kompresi (30-95)
+5. **Klik tombol "Jalankan Uji Kerapuhan JPEG"**
+6. **Hasil**:
+   - Gambar dienkripsi dan disisipkan pesan (seperti tab enkripsi)
+   - Gambar stego dikompresi dengan JPEG pada quality yang dipilih
+   - Aplikasi mencoba mengekstrak pesan dari gambar JPEG
+   - Menampilkan metrik distorsi (MSE, PSNR, MAE)
+   - Menampilkan hasil ekstraksi (berhasil/gagal)
+
+**Pengamatan:**
+
+- **Quality 95**: Mungkin masih dapat diekstrak (kompresi minimal)
+- **Quality 85-75**: Sering gagal (kuantisasi DCT mulai merusak LSB)
+- **Quality 65-55**: Hampir selalu gagal (kerusakan LSB signifikan)
+- **Quality 30**: Selalu gagal (kerusakan LSB total)
+
+**Kesimpulan:**
+
+- Metode LSB spasial bersifat **fragile** terhadap kompresi lossy
+- Kompresi JPEG menggunakan kuantisasi koefisien DCT yang merusak bit LSB
+- Gunakan format PNG untuk mempertahankan integritas pesan
 
 ---
 
@@ -149,13 +369,13 @@ Citra Stego (PNG)
 
 ## Teknologi
 
-| Library | Versi Min | Fungsi |
-|---|---|---|
-| `streamlit` | ≥ 1.39.0 | Framework web UI |
-| `Pillow` | ≥ 10.0.0 | Pemrosesan citra |
-| `numpy` | ≥ 1.24.0 | Komputasi numerik array |
-| `matplotlib` | ≥ 3.7.0 | Visualisasi histogram & plot |
-| `reedsolo` | ≥ 1.7.0 | Reed-Solomon Error Correction |
+| Library      | Versi Min | Fungsi                        |
+| ------------ | --------- | ----------------------------- |
+| `streamlit`  | ≥ 1.39.0  | Framework web UI              |
+| `Pillow`     | ≥ 10.0.0  | Pemrosesan citra              |
+| `numpy`      | ≥ 1.24.0  | Komputasi numerik array       |
+| `matplotlib` | ≥ 3.7.0   | Visualisasi histogram & plot  |
+| `reedsolo`   | ≥ 1.7.0   | Reed-Solomon Error Correction |
 
 ---
 

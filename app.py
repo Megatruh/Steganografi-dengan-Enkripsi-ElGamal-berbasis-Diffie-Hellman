@@ -1,3 +1,5 @@
+# TO DO : 4)ppt presentasi(canva/prezi)
+
 import streamlit as st
 import numpy as np
 from PIL import Image
@@ -1258,75 +1260,39 @@ with st.sidebar:
         y_val = str(st.session_state.public_key)
 
         st.markdown(
-            f"""
+            """
             <style>
-            .copy-param-row {{
-                display: flex;
-                align-items: flex-start;
-                justify-content: space-between;
-                gap: 0.4rem;
-                margin-top: 0.3rem;
-            }}
-            .copy-param-val {{
-                font-family: 'JetBrains Mono', monospace;
-                font-size: 0.75rem;
-                color: var(--papyrus);
-                word-break: break-all;
-                line-height: 1.5;
-                font-variant-numeric: tabular-nums;
-                flex: 1;
-            }}
-            .copy-btn {{
-                flex-shrink: 0;
-                background: var(--obsidian-card);
-                border: 1px solid var(--border);
-                border-radius: 4px;
-                color: var(--sandstone);
-                font-size: 0.7rem;
-                padding: 0.18rem 0.45rem;
-                cursor: pointer;
-                font-family: 'JetBrains Mono', monospace;
-                transition: all 0.2s ease;
-                margin-top: 0.1rem;
-            }}
-            .copy-btn:hover {{
-                background: var(--surface-high);
-                border-color: var(--sandstone);
-                color: var(--gold-light);
-            }}
-            .copy-btn:active {{
-                transform: scale(0.95);
-            }}
+            div[data-testid="stCode"] {
+                background-color: var(--surface-low) !important;
+                border: 1px solid var(--border) !important;
+                border-radius: 4px !important;
+                margin-top: 0.3rem !important;
+            }
+            div[data-testid="stCode"] > div > div {
+                color: var(--papyrus) !important;
+                font-family: 'JetBrains Mono', monospace !important;
+                font-size: 0.75rem !important;
+                word-break: break-all !important;
+                line-height: 1.5 !important;
+            }
             </style>
-            <div class="param-box">
-                <div class="param-label">Prime Modulus (p) &bull; 1024 bit</div>
-                <div class="copy-param-row">
-                    <div class="copy-param-val" id="val-p">{p_val}</div>
-                    <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('val-p').innerText).then(()=>{{this.innerText='✓';setTimeout(()=>this.innerText='⎘',1200)}})">⎘</button>
-                </div>
-                <div class="param-label" style="margin-top:0.55rem;">Generator Kuil (g)</div>
-                <div class="copy-param-row">
-                    <div class="copy-param-val" id="val-g">{g_val}</div>
-                    <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('val-g').innerText).then(()=>{{this.innerText='✓';setTimeout(()=>this.innerText='⎘',1200)}})">⎘</button>
-                </div>
-            </div>
-
-            <div class="sidebar-section-title" style="margin-top:1rem;">Pasangan Kunci Suci</div>
-            <div class="param-box">
-                <div class="param-label">Private Key (x) &bull; Rahasia Santuari</div>
-                <div class="copy-param-row">
-                    <div class="copy-param-val" id="val-x">{x_val}</div>
-                    <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('val-x').innerText).then(()=>{{this.innerText='✓';setTimeout(()=>this.innerText='⎘',1200)}})">⎘</button>
-                </div>
-                <div class="param-label" style="margin-top:0.55rem;">Public Key (y) &bull; Kunci Terbuka</div>
-                <div class="copy-param-row">
-                    <div class="copy-param-val" id="val-y">{y_val}</div>
-                    <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('val-y').innerText).then(()=>{{this.innerText='✓';setTimeout(()=>this.innerText='⎘',1200)}})">⎘</button>
-                </div>
-            </div>
             """,
             unsafe_allow_html=True,
         )
+
+        st.markdown('<div class="param-label">Prime Modulus (p) • 1024 bit</div>', unsafe_allow_html=True)
+        st.code(p_val, language=None)
+
+        st.markdown('<div class="param-label" style="margin-top:0.55rem;">Generator Kuil (g)</div>', unsafe_allow_html=True)
+        st.code(g_val, language=None)
+
+        st.markdown('<div class="sidebar-section-title" style="margin-top:1rem;">Pasangan Kunci Suci</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="param-label">Private Key (x) • Rahasia Santuari</div>', unsafe_allow_html=True)
+        st.code(x_val, language=None)
+
+        st.markdown('<div class="param-label" style="margin-top:0.55rem;">Public Key (y) • Kunci Terbuka</div>', unsafe_allow_html=True)
+        st.code(y_val, language=None)
 
         if st.button("Bangkitkan Kunci Baru", type="secondary", use_container_width=True):
             st.cache_resource.clear()
